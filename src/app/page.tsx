@@ -464,28 +464,54 @@ export default function Page() {
         <Drawer.Root open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
           <Drawer.Portal>
             <Drawer.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
-            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] mt-24 flex flex-col rounded-t-2xl bg-[#0A0A0A]/95 border-t border-white/10 max-h-[90vh]">
+            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] mt-24 flex flex-col rounded-t-2xl bg-[#0A0A0A]/70 border-t border-white/10 max-h-[90vh]">
+              {/* Скрытый заголовок для доступности (только для screen readers) */}
+              <Drawer.Title className="sr-only">Мобильное меню навигации</Drawer.Title>
               <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-white/20 mb-4 mt-3" />
               <div className="px-4 py-4 overflow-y-auto">
                 <div className="space-y-6">
-                  {/* MegaMenu в мобильном меню */}
-                  <div className="flex justify-center">
-                    <MegaMenu 
-                      items={navItems} 
-                      onServiceClick={(serviceTitle) => {
-                        setSelectedService(serviceTitle);
-                        setShowServiceModal(true);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      onCasesAndReviewsClick={() => {
-                        setShowCasesAndReviewsModal(true);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      onContactsClick={() => {
-                        setShowContactsModal(true);
-                        setIsMobileMenuOpen(false);
-                      }}
-                    />
+                  {/* MegaMenu в мобильном меню - две строки */}
+                  <div className="flex flex-col gap-3">
+                    {/* Первая строка: Услуги, Решения, ИИ - Ассистенты */}
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <MegaMenu 
+                        items={navItems.filter(item => ["Услуги", "Решения", "ИИ - Ассистенты"].includes(item.label))} 
+                        className="flex-wrap justify-center"
+                        onServiceClick={(serviceTitle) => {
+                          setSelectedService(serviceTitle);
+                          setShowServiceModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        onCasesAndReviewsClick={() => {
+                          setShowCasesAndReviewsModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        onContactsClick={() => {
+                          setShowContactsModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      />
+                    </div>
+                    {/* Вторая строка: Кейсы и отзывы, Контакты */}
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <MegaMenu 
+                        items={navItems.filter(item => ["Кейсы и отзывы", "Контакты"].includes(item.label))} 
+                        className="flex-wrap justify-center"
+                        onServiceClick={(serviceTitle) => {
+                          setSelectedService(serviceTitle);
+                          setShowServiceModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        onCasesAndReviewsClick={() => {
+                          setShowCasesAndReviewsModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        onContactsClick={() => {
+                          setShowContactsModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      />
+                    </div>
                   </div>
                   
                   {/* Разделитель */}

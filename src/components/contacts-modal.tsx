@@ -27,10 +27,9 @@ interface ContactsModalProps {
 const APP_EMAIL = "info@rahima-consulting.ru";
 const APP_PHONE = "+7 (978) 998-72-22";
 const APP_ADDRESS = "г. Симферополь, ул. имени Мате Залки, д. 1, офис 1";
-// Координаты офиса: [долгота, широта]
-// Если не указаны, карта автоматически определит координаты по адресу
-// Пример для Симферополя: [34.1003, 44.9482]
-const OFFICE_COORDINATES: [number, number] | undefined = undefined;
+// Координаты офиса: [широта, долгота] для Яндекс карт
+// Координаты для ул. имени Мате Залки, д. 1, Симферополь
+const OFFICE_COORDINATES: [number, number] = [44.950534, 34.127276];
 
 export default function ContactsModal({ isOpen, onClose }: ContactsModalProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -193,6 +192,8 @@ export default function ContactsModal({ isOpen, onClose }: ContactsModalProps) {
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] mt-24 flex flex-col rounded-t-2xl bg-[#0A0A0A]/95 border-t border-white/10 max-h-[90vh]">
+            {/* Скрытый заголовок для доступности (только для screen readers) */}
+            <Drawer.Title className="sr-only">Наши контакты</Drawer.Title>
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-white/20 mb-4 mt-3" />
             {modalContent}
           </Drawer.Content>

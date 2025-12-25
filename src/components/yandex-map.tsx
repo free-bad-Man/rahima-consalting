@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useEffect, useRef, useState } from "react";
+import MapLoader from "@/components/ui/map-loader";
+import { MapPin } from "lucide-react";
 
 interface YandexMapProps {
   address: string;
-  center?: [number, number]; // [долгота, широта]
+  center?: [number, number]; // [широта, долгота]
   zoom?: number;
   height?: string;
   className?: string;
 }
+
+// ID конструктора из предоставленного скрипта
+const CONSTRUCTOR_ID = "126df85cd26de115228ceddeb2958488cb30323393e8ac9b8518d873641bf6ca";
 
 export default function YandexMap({
   address,
@@ -18,183 +22,124 @@ export default function YandexMap({
   height = "400px",
   className = "",
 }: YandexMapProps) {
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const mapRef = useRef<HTMLDivElement>(null);
-  const ymapsRef = useRef<any>(null);
-  const mapInstanceRef = useRef<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const scriptLoadedRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    let script: HTMLScriptElement | null = null;
-
-    const initMap = () => {
-      if (!mapRef.current || !ymapsRef.current) return;
-
-      // Если карта уже создана, уничтожаем её
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.destroy();
-        mapInstanceRef.current = null;
-      }
-
-      const ymaps = ymapsRef.current;
-
-      // Если координаты не указаны, геокодируем адрес
-      if (center) {
-        createMap(center);
-      } else {
-        // Геокодирование адреса
-        ymaps.geocode(address).then((result: any) => {
-          const firstGeoObject = result.geoObjects.get(0);
-          if (firstGeoObject) {
-            const coordinates = firstGeoObject.geometry.getCoordinates();
-            createMap(coordinates);
-          } else {
-            // Если адрес не найден, используем координаты Симферополя по умолчанию
-            createMap([34.1003, 44.9482]);
-          }
-        }).catch(() => {
-          // В случае ошибки используем координаты по умолчанию
-          createMap([34.1003, 44.9482]);
-        });
-      }
-    };
-
-    const createMap = (coordinates: [number, number]) => {
-      if (!mapRef.current || !ymapsRef.current) return;
-
-      const ymaps = ymapsRef.current;
-
-      // Создаем карту
-      // На мобильных отключаем drag, чтобы пользователь мог прокручивать страницу
-      const mapOptions: any = {
-        center: coordinates,
-        zoom: zoom,
-        controls: isMobile ? ["zoomControl"] : ["zoomControl", "fullscreenControl"],
-        options: {
-          suppressMapOpenBlock: true,
-        },
-      };
-
-      // Отключаем перетаскивание на мобильных устройствах
-      if (isMobile) {
-        // На мобильных полностью отключаем behaviors (drag, scrollZoom)
-        mapOptions.behaviors = [];
-      } else {
-        // На десктопе включаем стандартное поведение
-        mapOptions.behaviors = ["default", "scrollZoom"];
-      }
-
-      mapInstanceRef.current = new ymaps.Map(mapRef.current, mapOptions);
-      
-      // Дополнительно отключаем touch-события для перетаскивания на мобильных
-      if (isMobile && mapRef.current) {
-        // Разрешаем только вертикальную прокрутку страницы, блокируем перетаскивание карты
-        mapRef.current.style.touchAction = 'pan-y';
-        mapRef.current.style.userSelect = 'none';
-        mapRef.current.style.webkitUserSelect = 'none';
-        // Используем setProperty для нестандартных CSS-свойств
-        mapRef.current.style.setProperty('-webkit-touch-callout', 'none');
-        
-        // Предотвращаем перетаскивание карты через touch-события
-        const preventMapDrag = (e: TouchEvent) => {
-          // Разрешаем только вертикальную прокрутку
-          if (e.touches.length === 1) {
-            const touch = e.touches[0];
-            const target = e.target as HTMLElement;
-            // Если это не элемент управления картой, разрешаем прокрутку страницы
-            if (!target.closest('.ymaps-2-1-79-controls__control')) {
-              e.stopPropagation();
-            }
-          }
-        };
-        
-        mapRef.current.addEventListener('touchstart', preventMapDrag, { passive: false });
-        mapRef.current.addEventListener('touchmove', preventMapDrag, { passive: false });
-      }
-
-      // Добавляем метку
-      const placemark = new ymaps.Placemark(
-        coordinates,
-        {
-          balloonContent: address,
-          iconCaption: address,
-        },
-        {
-          preset: "islands#violetDotIconWithCaption",
-        }
-      );
-
-      mapInstanceRef.current.geoObjects.add(placemark);
-    };
-
-    // Проверяем, загружен ли уже API Яндекс карт
-    if (window.ymaps) {
-      ymapsRef.current = window.ymaps;
-      window.ymaps.ready(() => {
-        initMap();
-      });
+    // Проверяем, не загружен ли уже скрипт для этого контейнера
+    if (scriptLoadedRef.current || !mapContainerRef.current) {
       return;
     }
 
-    // Проверяем, не загружается ли уже скрипт
-    const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
-    if (existingScript) {
-      existingScript.addEventListener('load', () => {
-        if (window.ymaps) {
-          ymapsRef.current = window.ymaps;
-          window.ymaps.ready(() => {
-            initMap();
-          });
-        }
-      });
+    const container = mapContainerRef.current;
+    
+    // Проверяем, не добавлен ли уже скрипт в этот контейнер
+    if (container.querySelector('script')) {
+      scriptLoadedRef.current = true;
+      setIsLoading(false);
       return;
     }
 
-    // Загружаем API Яндекс карт
-    script = document.createElement("script");
-    script.src = "https://api-maps.yandex.ru/2.1/?apikey=&lang=ru_RU";
+    // Получаем числовое значение высоты для URL
+    const heightNum = parseInt(height) || 400;
+
+    // Создаем и добавляем скрипт в контейнер
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.charset = "utf-8";
     script.async = true;
+    script.src = `https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3A${CONSTRUCTOR_ID}&width=100%25&height=${heightNum}&lang=ru_RU&scroll=true`;
+    
     script.onload = () => {
-      if (window.ymaps) {
-        ymapsRef.current = window.ymaps;
-        window.ymaps.ready(() => {
-          initMap();
-        });
+      scriptLoadedRef.current = true;
+      // Даем небольшое время на рендеринг карты перед скрытием загрузчика
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+    };
+
+    script.onerror = () => {
+      setHasError(true);
+      setIsLoading(false);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Не удалось загрузить скрипт Яндекс.Карт');
       }
     };
-    document.head.appendChild(script);
 
+    container.appendChild(script);
+
+    // Очистка при размонтировании
     return () => {
-      // Очистка при размонтировании
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.destroy();
-        mapInstanceRef.current = null;
+      scriptLoadedRef.current = false;
+      if (script.parentNode === container) {
+        container.removeChild(script);
       }
     };
-  }, [address, center, zoom, isMobile]);
-
+  }, [height]);
 
   return (
     <div
-      ref={mapRef}
       style={{ 
         height: height,
-        // На мобильных разрешаем только вертикальную прокрутку страницы
-        touchAction: isMobile ? 'pan-y' : 'auto',
-        WebkitTouchCallout: 'none',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        // Предотвращаем выделение текста при касании
-        WebkitTapHighlightColor: 'transparent',
+        width: '100%',
+        position: 'relative',
       }}
-      className={`w-full rounded-lg md:rounded-xl overflow-hidden border border-white/10 ${className} ${isMobile ? 'select-none touch-none' : ''}`}
-    />
-  );
-}
+      className={`w-full rounded-lg md:rounded-xl overflow-hidden border border-white/10 ${className}`}
+    >
+      {/* Заглушка загрузки */}
+      {isLoading && (
+        <div className="absolute inset-0 z-10">
+          <MapLoader height={height} />
+        </div>
+      )}
 
-// Расширяем Window interface для TypeScript
-declare global {
-  interface Window {
-    ymaps: any;
-  }
+      {/* Ошибка загрузки */}
+      {hasError && (
+        <div className="w-full h-full flex items-center justify-center bg-white/5 rounded-lg md:rounded-xl">
+          <div className="flex flex-col items-center gap-3 px-4">
+            <MapPin className="h-8 w-8 text-white/50" />
+            <p className="text-white/70 text-sm text-center">Не удалось загрузить карту</p>
+            <a
+              href={`https://yandex.ru/maps/?text=${encodeURIComponent(address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-400 hover:text-purple-300 text-sm underline transition-colors"
+            >
+              Открыть в Яндекс.Картах
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Контейнер для карты */}
+      <div
+        ref={mapContainerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          opacity: isLoading || hasError ? 0 : 1,
+          transition: 'opacity 0.3s ease-in-out',
+        }}
+      />
+      
+      {/* Кликабельная ссылка на Яндекс.Карты (поверх карты) */}
+      {!hasError && (
+        <a
+          href={`https://yandex.ru/maps/?text=${encodeURIComponent(address)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'block',
+            zIndex: 1,
+          }}
+          aria-label={`Открыть карту ${address} в Яндекс.Картах`}
+        />
+      )}
+    </div>
+  );
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   BarChart3,
   Box,
@@ -123,6 +125,12 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
     const [currentPage, setCurrentPage] = React.useState(0);
     const [direction, setDirection] = React.useState<'left' | 'right'>('right');
     const [tooltipHover, setTooltipHover] = React.useState<string | null>(null);
+    const [mounted, setMounted] = React.useState(false);
+    const isMobile = useMediaQuery("(max-width: 768px)");
+
+    React.useEffect(() => {
+      setMounted(true);
+    }, []);
 
     const getTooltipText = (label: string): string | null => {
       const tooltips: Record<string, string> = {
@@ -156,7 +164,8 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
 
     const nextPage = () => {
       const currentMenu = items.find(item => item.label === openMenu);
-      const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / 2) : 1;
+      const itemsPerPage = isMobile && openMenu === "Услуги" ? 1 : 2;
+      const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / itemsPerPage) : 1;
       setDirection('right');
       setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
     };
@@ -276,7 +285,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                     {triggerContent}
                   </div>
                 )}
-                {["Кейсы и отзывы", "Контакты"].includes(navItem.label) && tooltipHover === navItem.label && getTooltipText(navItem.label) && (
+                {!isMobile && ["Кейсы и отзывы", "Контакты"].includes(navItem.label) && tooltipHover === navItem.label && getTooltipText(navItem.label) && (
                   <div className="absolute top-full right-0 mt-2 z-50 w-[calc(100vw-2rem)] md:w-[400px] max-w-[calc(100vw-2rem)] md:max-w-[calc(100vw-280px)]">
                     <div className="bg-black/90 text-white text-[10px] md:text-xs rounded-lg px-3 md:px-4 py-2 md:py-3 shadow-lg border border-white/10">
                       <p className="whitespace-normal leading-relaxed break-words">
@@ -288,7 +297,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                     </div>
                   </div>
                 )}
-                {isModalMenu && tooltipHover === navItem.label && getTooltipText(navItem.label) && (
+                {!isMobile && isModalMenu && tooltipHover === navItem.label && getTooltipText(navItem.label) && (
                   <div className="absolute top-full left-0 mt-2 z-50 w-[calc(100vw-2rem)] md:w-[600px] max-w-[calc(100vw-2rem)] md:max-w-[calc(100vw-280px)]">
                     <div className="bg-black/90 text-white text-[10px] md:text-xs rounded-lg px-3 md:px-4 py-2 md:py-3 shadow-lg border border-white/10">
                       <p className="whitespace-normal leading-relaxed break-words">
@@ -368,46 +377,77 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
           );
         })}
       </ul>
-      <AnimatePresence>
-        {openMenu && ["Услуги", "Решения", "ИИ - Ассистенты"].includes(openMenu) && items.find(item => item.label === openMenu)?.subMenus && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
-              onClick={closeModal}
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed inset-2 md:inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-2xl md:rounded-3xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative h-full w-full overflow-y-auto">
-                <div className="container mx-auto px-4 md:px-6 lg:px-12 xl:px-20 py-4 md:py-6 lg:py-8 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-4 md:mb-8">
-                    <h2 className="text-lg md:text-xl font-semibold text-white">
-                      {items.find(item => item.label === openMenu)?.label}
-                    </h2>
-                    <button
-                      onClick={closeModal}
-                      className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                      aria-label="Закрыть"
-                    >
-                      <X className="h-4 w-4 md:h-5 md:w-5" />
-                    </button>
+      {mounted && typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {openMenu && ["Услуги", "Решения", "ИИ - Ассистенты"].includes(openMenu) && items.find(item => item.label === openMenu)?.subMenus && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+                onClick={closeModal}
+              />
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="fixed z-[101] bg-[#0A0A0A]/95 md:bg-[#0A0A0A]/85 border-0 md:border border-white/10 rounded-none md:rounded-3xl flex flex-col overflow-hidden"
+                style={isMobile ? { 
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: '100vh',
+                  width: '100vw',
+                  maxHeight: '100vh',
+                  maxWidth: '100vw',
+                  position: 'fixed',
+                  margin: 0,
+                  padding: 0,
+                  inset: 0
+                } : {
+                  top: '1rem',
+                  left: '1rem',
+                  right: '1rem',
+                  bottom: '1rem',
+                  position: 'fixed'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+              <div className="flex-shrink-0 px-4 md:px-6 lg:px-12 xl:px-20 py-4 md:py-6 border-b border-white/10 bg-[#0A0A0A]/95 md:bg-transparent">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg md:text-xl font-semibold text-white">
+                    {items.find(item => item.label === openMenu)?.label}
+                  </h2>
+                  <button
+                    onClick={closeModal}
+                    className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                    aria-label="Закрыть"
+                  >
+                    <X className="h-4 w-4 md:h-5 md:w-5" />
+                  </button>
+                </div>
+                {!session && (
+                  <div className="w-full text-center mt-4">
+                    <p className="text-xs md:text-sm text-white/60 italic">
+                      Некоторые функции доступны только зарегистрированным пользователям.
+                    </p>
                   </div>
-                  {!session && (
-                    <div className="w-full text-center mb-4 md:mb-6">
-                      <p className="text-xs md:text-sm text-white/60 italic">
-                        Некоторые функции доступны только зарегистрированным пользователям.
-                      </p>
-                    </div>
-                  )}
+                )}
+              </div>
+              <div 
+                className="flex-1 overflow-y-auto overscroll-contain" 
+                style={{ 
+                  WebkitOverflowScrolling: 'touch', 
+                  minHeight: 0,
+                  touchAction: 'pan-y',
+                  position: 'relative'
+                }}
+              >
+                <div className="container mx-auto px-4 md:px-6 lg:px-12 xl:px-20 py-4 md:py-6 lg:py-8 pb-8">
                   <div className="absolute bottom-4 right-4 md:right-24 z-10 hidden md:block">
                     <img
                       src="/logo.png"
@@ -422,7 +462,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                       }}
                     />
                   </div>
-                  <div className="relative flex-1 overflow-hidden">
+                  <div className="relative" style={{ minHeight: '100%' }}>
                     <AnimatePresence mode="wait" custom={direction}>
                       <motion.div
                         key={currentPage}
@@ -431,10 +471,17 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                         animate={{ x: 0, opacity: 1 }}
                         exit={direction === 'right' ? { x: '-100%', opacity: 0 } : { x: '100%', opacity: 0 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        className={`grid ${currentPage === 2 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4 md:gap-6 lg:gap-12`}
+                        className={`grid ${isMobile && openMenu === "Услуги" ? 'grid-cols-1' : currentPage === 2 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4 md:gap-6 lg:gap-12`}
                       >
                         {items.find(item => item.label === openMenu)?.subMenus
-                          ?.slice(currentPage * 2, currentPage * 2 + 2)
+                          ?.slice(
+                            isMobile && openMenu === "Услуги" 
+                              ? currentPage * 1 
+                              : currentPage * 2, 
+                            isMobile && openMenu === "Услуги" 
+                              ? currentPage * 1 + 1 
+                              : currentPage * 2 + 2
+                          )
                           .map((sub) => (
                             <div key={sub.title} className={currentPage === 2 ? 'w-full max-w-2xl mx-auto' : 'w-full'}>
                               <h3 className={`mb-4 font-medium capitalize text-white/80 ${currentPage === 2 ? 'text-base' : 'text-sm'}`}>
@@ -479,23 +526,52 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                     </AnimatePresence>
                     {(() => {
                       const currentMenu = items.find(item => item.label === openMenu);
-                      const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / 2) : 1;
+                      const itemsPerPage = isMobile && openMenu === "Услуги" ? 1 : 2;
+                      const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / itemsPerPage) : 1;
                       return (
                         <>
                           {currentPage > 0 && (
                             <button
-                              onClick={prevPage}
-                              className="fixed left-2 md:left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20 shadow-lg"
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                prevPage();
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                              }}
+                              onTouchEnd={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                prevPage();
+                              }}
+                              className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white transition-colors z-[102] shadow-lg touch-manipulation"
                               aria-label="Предыдущая страница"
+                              style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
                             >
                               <ChevronLeft className="h-5 w-5 md:h-7 md:w-7" />
                             </button>
                           )}
                           {currentPage < totalPages - 1 && (
                             <button
-                              onClick={nextPage}
-                              className="fixed right-2 md:right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20 shadow-lg"
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                nextPage();
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                              }}
+                              onTouchEnd={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                nextPage();
+                              }}
+                              className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white transition-colors z-[102] shadow-lg touch-manipulation"
                               aria-label="Следующая страница"
+                              style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
                             >
                               <ChevronRight className="h-5 w-5 md:w-7 md:h-7" />
                             </button>
@@ -506,7 +582,8 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                   </div>
                   {(() => {
                     const currentMenu = items.find(item => item.label === openMenu);
-                    const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / 2) : 1;
+                    const itemsPerPage = isMobile && openMenu === "Услуги" ? 1 : 2;
+                    const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / itemsPerPage) : 1;
                     return (
                       <div className="flex justify-center items-center gap-1.5 md:gap-2 mt-4 md:mt-8 pb-2 md:pb-4">
                         {Array.from({ length: totalPages }).map((_, index) => (
@@ -529,7 +606,9 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </React.Fragment>
     );
   }
