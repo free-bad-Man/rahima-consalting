@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Building2, Calculator, Briefcase, Zap, TrendingUp, Star, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { TestimonialCarousel, TestimonialData } from "@/components/ui/testimonial";
+import { Drawer } from "vaul";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface CasesAndReviewsModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface CasesAndReviewsModalProps {
 type TabType = "cases" | "reviews";
 
 export default function CasesAndReviewsModal({ isOpen, onClose }: CasesAndReviewsModalProps) {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [activeTab, setActiveTab] = useState<TabType>("cases");
 
   const cases = [
@@ -153,88 +156,72 @@ export default function CasesAndReviewsModal({ isOpen, onClose }: CasesAndReview
     },
   ];
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-3xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Sticky Header */}
-            <div className="sticky top-0 z-10 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/10">
-              <div className="container mx-auto px-6 md:px-12 lg:px-20 py-3">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h2 className="text-xl md:text-2xl font-semibold text-white mb-1">
-                      Кейсы и отзывы
-                    </h2>
-                    <p className="text-white/70 text-xs md:text-sm">
-                      Реальные примеры нашей работы и отзывы клиентов
-                    </p>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors ml-4 flex-shrink-0"
-                    aria-label="Закрыть"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex gap-2 border-b border-white/10">
-                  <button
-                    onClick={() => setActiveTab("cases")}
-                    className={`px-4 py-2 text-xs md:text-sm font-medium transition-colors relative ${
-                      activeTab === "cases"
-                        ? "text-white"
-                        : "text-white/60 hover:text-white/80"
-                    }`}
-                  >
-                    Наши кейсы
-                    {activeTab === "cases" && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"
-                      />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("reviews")}
-                    className={`px-4 py-2 text-xs md:text-sm font-medium transition-colors relative ${
-                      activeTab === "reviews"
-                        ? "text-white"
-                        : "text-white/60 hover:text-white/80"
-                    }`}
-                  >
-                    Отзывы
-                    {activeTab === "reviews" && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"
-                      />
-                    )}
-                  </button>
-                </div>
-              </div>
+  const modalContent = (
+    <>
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/10">
+        <div className="container mx-auto px-4 md:px-6 lg:px-12 xl:px-20 py-3">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <h2 className="text-lg md:text-xl lg:text-2xl font-semibold text-white mb-1">
+                Кейсы и отзывы
+              </h2>
+              <p className="text-white/70 text-xs md:text-sm">
+                Реальные примеры нашей работы и отзывы клиентов
+              </p>
             </div>
+            {!isMobile && (
+              <button
+                onClick={onClose}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors ml-4 flex-shrink-0"
+                aria-label="Закрыть"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="container mx-auto px-6 md:px-12 lg:px-20 py-8">
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-white/10">
+            <button
+              onClick={() => setActiveTab("cases")}
+              className={`px-4 py-2 text-xs md:text-sm font-medium transition-colors relative ${
+                activeTab === "cases"
+                  ? "text-white"
+                  : "text-white/60 hover:text-white/80"
+              }`}
+            >
+              Наши кейсы
+              {activeTab === "cases" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"
+                />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className={`px-4 py-2 text-xs md:text-sm font-medium transition-colors relative ${
+                activeTab === "reviews"
+                  ? "text-white"
+                  : "text-white/60 hover:text-white/80"
+              }`}
+            >
+              Отзывы
+              {activeTab === "reviews" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"
+                />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 md:px-6 lg:px-12 xl:px-20 py-4 md:py-8">
                 {/* Content */}
                 <AnimatePresence mode="wait">
                   {activeTab === "cases" && (
@@ -343,8 +330,46 @@ export default function CasesAndReviewsModal({ isOpen, onClose }: CasesAndReview
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
-            </div>
+        </div>
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] mt-24 flex flex-col rounded-t-2xl bg-[#0A0A0A]/95 border-t border-white/10 max-h-[90vh]">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-white/20 mb-4 mt-3" />
+            {modalContent}
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-2 md:inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-2xl md:rounded-3xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {modalContent}
           </motion.div>
         </>
       )}

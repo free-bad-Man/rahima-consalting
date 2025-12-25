@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface YandexMapProps {
   address: string;
@@ -17,6 +18,7 @@ export default function YandexMap({
   height = "400px",
   className = "",
 }: YandexMapProps) {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const mapRef = useRef<HTMLDivElement>(null);
   const ymapsRef = useRef<any>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -62,11 +64,51 @@ export default function YandexMap({
       const ymaps = ymapsRef.current;
 
       // Создаем карту
-      mapInstanceRef.current = new ymaps.Map(mapRef.current, {
+      // На мобильных отключаем drag, чтобы пользователь мог прокручивать страницу
+      const mapOptions: any = {
         center: coordinates,
         zoom: zoom,
-        controls: ["zoomControl", "fullscreenControl"],
-      });
+        controls: isMobile ? ["zoomControl"] : ["zoomControl", "fullscreenControl"],
+        options: {
+          suppressMapOpenBlock: true,
+        },
+      };
+
+      // Отключаем перетаскивание на мобильных устройствах
+      if (isMobile) {
+        // На мобильных полностью отключаем behaviors (drag, scrollZoom)
+        mapOptions.behaviors = [];
+      } else {
+        // На десктопе включаем стандартное поведение
+        mapOptions.behaviors = ["default", "scrollZoom"];
+      }
+
+      mapInstanceRef.current = new ymaps.Map(mapRef.current, mapOptions);
+      
+      // Дополнительно отключаем touch-события для перетаскивания на мобильных
+      if (isMobile && mapRef.current) {
+        // Разрешаем только вертикальную прокрутку страницы, блокируем перетаскивание карты
+        mapRef.current.style.touchAction = 'pan-y';
+        mapRef.current.style.userSelect = 'none';
+        mapRef.current.style.webkitUserSelect = 'none';
+        mapRef.current.style.webkitTouchCallout = 'none';
+        
+        // Предотвращаем перетаскивание карты через touch-события
+        const preventMapDrag = (e: TouchEvent) => {
+          // Разрешаем только вертикальную прокрутку
+          if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const target = e.target as HTMLElement;
+            // Если это не элемент управления картой, разрешаем прокрутку страницы
+            if (!target.closest('.ymaps-2-1-79-controls__control')) {
+              e.stopPropagation();
+            }
+          }
+        };
+        
+        mapRef.current.addEventListener('touchstart', preventMapDrag, { passive: false });
+        mapRef.current.addEventListener('touchmove', preventMapDrag, { passive: false });
+      }
 
       // Добавляем метку
       const placemark = new ymaps.Placemark(
@@ -127,14 +169,23 @@ export default function YandexMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [address, center, zoom]);
+  }, [address, center, zoom, isMobile]);
 
 
   return (
     <div
       ref={mapRef}
-      style={{ height }}
-      className={`w-full rounded-lg overflow-hidden border border-white/10 ${className}`}
+      style={{ 
+        height: height,
+        // На мобильных разрешаем только вертикальную прокрутку страницы
+        touchAction: isMobile ? 'pan-y' : 'auto',
+        WebkitTouchCallout: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        // Предотвращаем выделение текста при касании
+        WebkitTapHighlightColor: 'transparent',
+      }}
+      className={`w-full rounded-lg md:rounded-xl overflow-hidden border border-white/10 ${className} ${isMobile ? 'select-none touch-none' : ''}`}
     />
   );
 }

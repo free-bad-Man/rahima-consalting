@@ -1,0 +1,1 @@
+When modifying UI components for mobile responsiveness, always use Tailwind's responsive modifiers (sm:, md:, lg:) to ensure desktop styles remain intact. Do not replace existing layout classes; augment them.

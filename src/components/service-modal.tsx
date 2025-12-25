@@ -3,6 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Calculator, FileText, FileCheck, Send, Shield, Users, Clock, Settings, Building2, Briefcase, Eye, Zap, Cpu, BarChart3, TrendingUp, Newspaper, Rocket, MapPin, Key, Trash2, RotateCcw, GraduationCap } from "lucide-react";
 import { useMemo } from "react";
+import { Drawer } from "vaul";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface ServiceModalProps {
   isOpen: boolean;
@@ -222,6 +224,7 @@ const getServiceContent = (title: string) => {
 };
 
 export default function ServiceModal({ isOpen, onClose, serviceTitle = "" }: ServiceModalProps) {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const content = useMemo(() => {
     if (!serviceTitle) return null;
     return getServiceContent(serviceTitle);
@@ -231,69 +234,51 @@ export default function ServiceModal({ isOpen, onClose, serviceTitle = "" }: Ser
 
   const { subtitle, services, advantages, process, faqs } = content;
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+  const modalContent = (
+    <>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4 md:mb-6 lg:mb-8">
+        <div className="flex-1 pr-2">
+          <h2 className="text-lg md:text-2xl lg:text-3xl font-semibold text-white mb-1 md:mb-2">
+            {serviceTitle}
+          </h2>
+          <p className="text-white/70 text-xs md:text-sm lg:text-base">
+            {subtitle}
+          </p>
+        </div>
+        {!isMobile && (
+          <button
             onClick={onClose}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-3xl"
-            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors ml-2 md:ml-4 flex-shrink-0"
+            aria-label="Закрыть"
           >
-            <div className="relative h-full w-full overflow-y-auto">
-              <div className="container mx-auto px-6 md:px-12 lg:px-20 py-8 h-full flex flex-col">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-8">
-                  <div className="flex-1">
-                    <h2 className="text-2xl md:text-3xl font-semibold text-white mb-2">
-                      {serviceTitle}
-                    </h2>
-                    <p className="text-white/70 text-sm md:text-base">
-                      {subtitle}
-                    </p>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors ml-4 flex-shrink-0"
-                    aria-label="Закрыть"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+            <X className="h-4 w-4 md:h-5 md:w-5" />
+          </button>
+        )}
+      </div>
 
-                {/* Что входит в услугу */}
-                <section className="mb-12">
-                  <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <Calculator className="h-5 w-5 text-purple-400" />
-                    Что входит в услугу
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+        {/* Что входит в услугу */}
+        <section className="mb-6 md:mb-8 lg:mb-12">
+          <h3 className="text-base md:text-lg lg:text-xl font-semibold text-white mb-3 md:mb-4 lg:mb-6 flex items-center gap-2">
+            <Calculator className="h-4 w-4 md:h-5 md:w-5 text-purple-400" />
+            Что входит в услугу
+          </h3>
+          <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                     {services.map((service: { icon: React.ElementType; title: string; description: string }, index: number) => {
                       const Icon = service.icon;
                       return (
-                        <div
-                          key={index}
-                          className="flex items-start gap-3 p-4 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-                        >
-                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-400/30 flex items-center justify-center">
-                            <Icon className="h-5 w-5 text-purple-400" />
-                          </div>
-                          <div>
-                            <h4 className="text-white font-medium mb-1">{service.title}</h4>
-                            <p className="text-white/60 text-sm">{service.description}</p>
-                          </div>
-                        </div>
+            <div
+              key={index}
+              className="flex items-start gap-2 md:gap-3 p-3 md:p-4 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <div className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-400/30 flex items-center justify-center">
+                <Icon className="h-4 w-4 md:h-5 md:w-5 text-purple-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-medium mb-1 text-sm md:text-base">{service.title}</h4>
+                <p className="text-white/60 text-xs md:text-sm">{service.description}</p>
+              </div>
+            </div>
                       );
                     })}
                   </div>
@@ -386,6 +371,48 @@ export default function ServiceModal({ isOpen, onClose, serviceTitle = "" }: Ser
                     </button>
                   </div>
                 </section>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] mt-24 flex flex-col rounded-t-2xl bg-[#0A0A0A]/95 border-t border-white/10 max-h-[90vh]">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-white/20 mb-4 mt-3" />
+            <div className="px-4 py-4 overflow-y-auto">
+              {modalContent}
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+    );
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-2 md:inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-2xl md:rounded-3xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative h-full w-full overflow-y-auto">
+              <div className="container mx-auto px-4 md:px-6 lg:px-12 xl:px-20 py-4 md:py-6 lg:py-8 h-full flex flex-col">
+                {modalContent}
               </div>
             </div>
           </motion.div>

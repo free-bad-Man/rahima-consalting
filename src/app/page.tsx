@@ -423,10 +423,10 @@ export default function Page() {
           onClose={() => setShowContactsModal(false)}
         />
       )}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full px-6 md:px-12 lg:px-20 py-1">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full px-2 sm:px-3 md:px-6 lg:px-12 xl:px-20 py-1 md:py-1">
         {/* Мобильная версия: меню сверху, логотип по центру под меню */}
         <div className="md:hidden flex flex-col">
-          <div className="flex items-center justify-center pt-2">
+          <div className="flex items-center justify-center pt-1.5">
             <MegaMenu 
               items={navItems} 
               onServiceClick={(serviceTitle) => {
@@ -441,11 +441,11 @@ export default function Page() {
               }}
             />
           </div>
-          <div className="flex items-center justify-center py-2">
+          <div className="flex items-center justify-center py-1.5">
             <img
               src="/logo.png"
               alt="Логотип компании"
-              className="h-16 w-auto object-contain"
+              className="h-12 sm:h-14 w-auto object-contain"
               loading="eager"
               decoding="async"
               fetchPriority="high"
@@ -458,8 +458,8 @@ export default function Page() {
               }}
             />
           </div>
-          <div className="flex items-center justify-end pb-2">
-            <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center justify-end pb-1.5">
+            <div className="flex flex-col items-end gap-1.5">
               <AuthButton
                 onSignInClick={() => {
                   setShowAuthModal(true);
@@ -526,32 +526,32 @@ export default function Page() {
           </div>
         </div>
       </header>
-      <div className="relative z-10 min-h-[calc(100vh-200px)] flex items-center justify-center pb-24">
+      <div className="relative z-10 min-h-[calc(100vh-180px)] md:min-h-[calc(100vh-200px)] flex items-center justify-center pb-20 md:pb-24">
         {sections.map((s, i) => (
           <section
             key={s.title}
             className={`${
               i === 0
                 ? "h-full w-full flex items-center justify-center"
-                : "py-16 px-6 md:px-12 lg:px-20"
+                : "py-8 md:py-12 lg:py-16 px-4 sm:px-6 md:px-12 lg:px-20"
             }`}
           >
             <div className={`${
               i === 0
-                ? "w-full bg-transparent p-8 md:p-12 lg:p-20 flex flex-col items-center justify-center text-center"
-                : "max-w-4xl bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 p-8 shadow-2xl"
+                ? "w-full bg-transparent p-4 sm:p-6 md:p-8 lg:p-12 xl:p-20 flex flex-col items-center justify-center text-center"
+                : "max-w-4xl bg-black/50 backdrop-blur-md rounded-xl md:rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 shadow-2xl"
             }`}>
               {i === 0 ? (
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium tracking-wide leading-tight mb-4 bg-gradient-to-r from-purple-300 via-blue-300 via-purple-400 to-blue-400 bg-clip-text text-transparent mt-[50vh]" style={{ fontFamily: 'var(--font-orbitron), monospace' }}>
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-medium tracking-wide leading-tight mb-3 md:mb-4 bg-gradient-to-r from-purple-300 via-blue-300 via-purple-400 to-blue-400 bg-clip-text text-transparent mt-[35vh] sm:mt-[40vh] md:mt-[45vh] lg:mt-[50vh] px-4" style={{ fontFamily: 'var(--font-orbitron), monospace' }}>
                   Здесь Ваш личный ИИ-помощник для повышения производительности.
                 </h1>
               ) : (
                 <>
-                  <p className="text-sm uppercase tracking-[0.2em] text-purple-200/80 mb-2">
+                  <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-purple-200/80 mb-2">
                     Блок {i + 1}
                   </p>
-                  <h2 className="text-3xl md:text-4xl font-semibold mb-3">{s.title}</h2>
-                  <p className="text-lg text-white/90 leading-relaxed">{s.text}</p>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold mb-2 md:mb-3">{s.title}</h2>
+                  <p className="text-sm sm:text-base md:text-lg text-white/90 leading-relaxed">{s.text}</p>
                 </>
               )}
             </div>

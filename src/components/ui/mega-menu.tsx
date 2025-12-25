@@ -186,11 +186,11 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
           const showChevron = hasSubmenu && !["Услуги", "Решения", "ИИ - Ассистенты"].includes(navItem.label);
           
           const triggerContent = (
-            <span className="relative flex cursor-pointer items-center justify-center gap-1 py-2 px-3 text-xs font-medium text-white transition-all duration-200 hover:bg-gray-900/40 group whitespace-nowrap rounded-md border border-white/20 bg-gray-900/30 shadow-sm hover:shadow-md">
+            <span className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-2 md:py-2 md:px-3 text-[10px] md:text-xs font-medium text-white transition-all duration-200 hover:bg-gray-900/40 group whitespace-nowrap rounded-md border border-white/20 bg-gray-900/30 shadow-sm hover:shadow-md">
               <span>{navItem.label}</span>
               {showChevron && (
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-300 group-hover:rotate-180 ${
+                  className={`h-3 w-3 md:h-4 md:w-4 transition-transform duration-300 group-hover:rotate-180 ${
                     isOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -277,24 +277,24 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                   </div>
                 )}
                 {["Кейсы и отзывы", "Контакты"].includes(navItem.label) && tooltipHover === navItem.label && getTooltipText(navItem.label) && (
-                  <div className="absolute top-full right-0 mt-2 z-50 w-[400px] max-w-[calc(100vw-280px)]">
-                    <div className="bg-black/90 text-white text-xs rounded-lg px-4 py-3 shadow-lg border border-white/10">
+                  <div className="absolute top-full right-0 mt-2 z-50 w-[calc(100vw-2rem)] md:w-[400px] max-w-[calc(100vw-2rem)] md:max-w-[calc(100vw-280px)]">
+                    <div className="bg-black/90 text-white text-[10px] md:text-xs rounded-lg px-3 md:px-4 py-2 md:py-3 shadow-lg border border-white/10">
                       <p className="whitespace-normal leading-relaxed break-words">
                         {getTooltipText(navItem.label)}
                       </p>
-                      <div className="absolute bottom-full right-8 -mb-1">
+                      <div className="absolute bottom-full right-4 md:right-8 -mb-1">
                         <div className="w-2 h-2 bg-black/90 border-r border-t border-white/10 rotate-45"></div>
                       </div>
                     </div>
                   </div>
                 )}
                 {isModalMenu && tooltipHover === navItem.label && getTooltipText(navItem.label) && (
-                  <div className="absolute top-full left-0 mt-2 z-50 w-[600px] max-w-[calc(100vw-280px)]">
-                    <div className="bg-black/90 text-white text-xs rounded-lg px-4 py-3 shadow-lg border border-white/10">
+                  <div className="absolute top-full left-0 mt-2 z-50 w-[calc(100vw-2rem)] md:w-[600px] max-w-[calc(100vw-2rem)] md:max-w-[calc(100vw-280px)]">
+                    <div className="bg-black/90 text-white text-[10px] md:text-xs rounded-lg px-3 md:px-4 py-2 md:py-3 shadow-lg border border-white/10">
                       <p className="whitespace-normal leading-relaxed break-words">
                         {getTooltipText(navItem.label)}
                       </p>
-                      <div className="absolute bottom-full left-8 -mb-1">
+                      <div className="absolute bottom-full left-4 md:left-8 -mb-1">
                         <div className="w-2 h-2 bg-black/90 border-l border-t border-white/10 rotate-45"></div>
                       </div>
                     </div>
@@ -305,10 +305,10 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
               {navItem.subMenus && (
                 <AnimatePresence mode="wait">
                   {(isOpen || (isModalMenu && openMenu === navItem.label)) && (
-                    <div className="absolute left-0 top-full w-auto pt-2 z-10">
+                    <div className="absolute left-0 top-full w-auto pt-2 z-10 hidden md:block">
                       <motion.div
                         key={navItem.label}
-                        className="w-[900px] max-w-[90vw] border border-white/10 bg-[#0A0A0A]/95 p-4"
+                        className="w-full md:w-[900px] max-w-[90vw] border border-white/10 bg-[#0A0A0A]/95 p-3 md:p-4"
                         style={{
                           borderRadius: 16,
                         }}
@@ -317,13 +317,13 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                         exit={{ opacity: 0, y: 8 }}
                         transition={{ duration: 0.18, ease: "easeOut" }}
                       >
-                        <div className="flex w-full shrink-0 items-start gap-9">
+                        <div className="flex w-full shrink-0 items-start gap-4 md:gap-6 lg:gap-9">
                           {navItem.subMenus.map((sub) => (
                             <motion.div layout="position" className="w-full" key={sub.title}>
-                              <h3 className="mb-4 text-sm font-medium capitalize text-white/50">
+                              <h3 className="mb-3 md:mb-4 text-xs md:text-sm font-medium capitalize text-white/50">
                                 {sub.title}
                               </h3>
-                              <ul className="space-y-6">
+                              <ul className="space-y-3 md:space-y-4 lg:space-y-6">
                                 {sub.items.map((item) => {
                                   const Icon = iconMap[item.icon];
                                   const handleClick = (e: React.MouseEvent) => {
@@ -340,14 +340,14 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                                         onClick={handleClick}
                                         className="w-full text-left flex items-start space-x-3 group"
                                       >
-                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-white/30 text-white transition-colors duration-300 group-hover:bg-white group-hover:text-[#0A0A0A]">
-                                          <Icon className="h-5 w-5 flex-none" />
+                                        <div className="flex size-8 md:size-9 shrink-0 items-center justify-center rounded-md border border-white/30 text-white transition-colors duration-300 group-hover:bg-white group-hover:text-[#0A0A0A]">
+                                          <Icon className="h-4 w-4 md:h-5 md:w-5 flex-none" />
                                         </div>
-                                        <div className="w-max leading-5">
-                                          <p className="shrink-0 text-sm font-medium text-white">
+                                        <div className="w-max leading-4 md:leading-5">
+                                          <p className="shrink-0 text-xs md:text-sm font-medium text-white">
                                             {item.label}
                                           </p>
-                                          <p className="shrink-0 text-xs text-white/50 transition-colors duration-300 group-hover:text-white">
+                                          <p className="shrink-0 text-[10px] md:text-xs text-white/50 transition-colors duration-300 group-hover:text-white">
                                             {item.description}
                                           </p>
                                         </div>
@@ -384,35 +384,35 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-3xl"
+              className="fixed inset-2 md:inset-4 z-[101] overflow-hidden bg-[#0A0A0A]/85 border border-white/10 rounded-2xl md:rounded-3xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="relative h-full w-full overflow-y-auto">
-                <div className="container mx-auto px-6 md:px-12 lg:px-20 py-8 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-xl font-semibold text-white">
+                <div className="container mx-auto px-4 md:px-6 lg:px-12 xl:px-20 py-4 md:py-6 lg:py-8 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-4 md:mb-8">
+                    <h2 className="text-lg md:text-xl font-semibold text-white">
                       {items.find(item => item.label === openMenu)?.label}
                     </h2>
                     <button
                       onClick={closeModal}
-                      className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                      className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                       aria-label="Закрыть"
                     >
-                      <X className="h-5 w-5" />
+                      <X className="h-4 w-4 md:h-5 md:w-5" />
                     </button>
                   </div>
                   {!session && (
-                    <div className="w-full text-center mb-6">
-                      <p className="text-sm text-white/60 italic">
+                    <div className="w-full text-center mb-4 md:mb-6">
+                      <p className="text-xs md:text-sm text-white/60 italic">
                         Некоторые функции доступны только зарегистрированным пользователям.
                       </p>
                     </div>
                   )}
-                  <div className="absolute bottom-4 right-24 z-10">
+                  <div className="absolute bottom-4 right-4 md:right-24 z-10 hidden md:block">
                     <img
                       src="/logo.png"
                       alt="Логотип компании"
-                      className="h-12 w-auto object-contain opacity-60"
+                      className="h-10 md:h-12 w-auto object-contain opacity-60"
                       style={{ 
                         backgroundColor: 'transparent',
                         background: 'transparent',
@@ -431,7 +431,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                         animate={{ x: 0, opacity: 1 }}
                         exit={direction === 'right' ? { x: '-100%', opacity: 0 } : { x: '100%', opacity: 0 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        className={`grid ${currentPage === 2 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-12`}
+                        className={`grid ${currentPage === 2 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4 md:gap-6 lg:gap-12`}
                       >
                         {items.find(item => item.label === openMenu)?.subMenus
                           ?.slice(currentPage * 2, currentPage * 2 + 2)
@@ -485,19 +485,19 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                           {currentPage > 0 && (
                             <button
                               onClick={prevPage}
-                              className="fixed left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-14 h-14 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20 shadow-lg"
+                              className="fixed left-2 md:left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20 shadow-lg"
                               aria-label="Предыдущая страница"
                             >
-                              <ChevronLeft className="h-7 w-7" />
+                              <ChevronLeft className="h-5 w-5 md:h-7 md:w-7" />
                             </button>
                           )}
                           {currentPage < totalPages - 1 && (
                             <button
                               onClick={nextPage}
-                              className="fixed right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-14 h-14 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20 shadow-lg"
+                              className="fixed right-2 md:right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20 shadow-lg"
                               aria-label="Следующая страница"
                             >
-                              <ChevronRight className="h-7 w-7" />
+                              <ChevronRight className="h-5 w-5 md:w-7 md:h-7" />
                             </button>
                           )}
                         </>
@@ -508,15 +508,15 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                     const currentMenu = items.find(item => item.label === openMenu);
                     const totalPages = currentMenu?.subMenus ? Math.ceil(currentMenu.subMenus.length / 2) : 1;
                     return (
-                      <div className="flex justify-center items-center gap-2 mt-8 pb-4">
+                      <div className="flex justify-center items-center gap-1.5 md:gap-2 mt-4 md:mt-8 pb-2 md:pb-4">
                         {Array.from({ length: totalPages }).map((_, index) => (
                           <button
                             key={index}
                             onClick={() => goToPage(index)}
-                            className={`w-2 h-2 rounded-full transition-all ${
+                            className={`h-1.5 md:h-2 rounded-full transition-all ${
                               currentPage === index
-                                ? 'bg-white w-8'
-                                : 'bg-white/30 hover:bg-white/50'
+                                ? 'bg-white w-6 md:w-8'
+                                : 'bg-white/30 hover:bg-white/50 w-1.5 md:w-2'
                             }`}
                             aria-label={`Страница ${index + 1}`}
                           />
