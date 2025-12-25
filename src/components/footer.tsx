@@ -46,8 +46,8 @@ export default function Footer() {
         <div className="mx-auto max-w-7xl">
           <div className="rounded-xl md:rounded-2xl bg-black/75 backdrop-blur-sm border border-white/10 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 md:gap-6">
-              {/* Блок 1: Контакты (слева) */}
-              <div className="flex flex-col items-start gap-1.5 sm:gap-2 w-full md:w-auto">
+              {/* Блок 1: Контакты (слева) - скрыт на мобильных */}
+              <div className="hidden md:flex flex-col items-start gap-1.5 sm:gap-2 w-full md:w-auto">
                 <a
                   href={`mailto:${APP_EMAIL}`}
                   className="flex items-center gap-1.5 sm:gap-2 text-white text-xs sm:text-sm hover:text-purple-400 transition-colors break-all"
