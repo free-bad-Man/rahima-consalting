@@ -91,7 +91,8 @@ export default function YandexMap({
         mapRef.current.style.touchAction = 'pan-y';
         mapRef.current.style.userSelect = 'none';
         mapRef.current.style.webkitUserSelect = 'none';
-        mapRef.current.style.webkitTouchCallout = 'none';
+        // Используем setProperty для нестандартных CSS-свойств
+        mapRef.current.style.setProperty('-webkit-touch-callout', 'none');
         
         // Предотвращаем перетаскивание карты через touch-события
         const preventMapDrag = (e: TouchEvent) => {
