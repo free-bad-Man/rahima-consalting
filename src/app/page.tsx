@@ -2,6 +2,8 @@
 
 import { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { Menu, User as UserIcon } from "lucide-react";
+import { Drawer } from "vaul";
 import MegaMenu, { type MegaMenuItem } from "@/components/ui/mega-menu";
 import AuthButton from "@/components/auth-button";
 
@@ -393,6 +395,9 @@ export default function Page() {
   const [selectedService, setSelectedService] = useState<string>("");
   const [showCasesAndReviewsModal, setShowCasesAndReviewsModal] = useState(false);
   const [showContactsModal, setShowContactsModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showMobileAuth, setShowMobileAuth] = useState(false);
 
   return (
     <main className="relative h-screen overflow-hidden text-white">
@@ -424,24 +429,10 @@ export default function Page() {
         />
       )}
       <header className="fixed top-0 left-0 right-0 z-50 w-full px-2 sm:px-3 md:px-6 lg:px-12 xl:px-20 py-1 md:py-1">
-        {/* Мобильная версия: меню сверху, логотип по центру под меню */}
-        <div className="md:hidden flex flex-col">
-          <div className="flex items-center justify-center pt-1.5">
-            <MegaMenu 
-              items={navItems} 
-              onServiceClick={(serviceTitle) => {
-                setSelectedService(serviceTitle);
-                setShowServiceModal(true);
-              }}
-              onCasesAndReviewsClick={() => {
-                setShowCasesAndReviewsModal(true);
-              }}
-              onContactsClick={() => {
-                setShowContactsModal(true);
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-center py-1.5">
+        {/* Мобильная версия: логотип по центру, бургер-меню справа */}
+        <div className="md:hidden flex items-center justify-between">
+          <div className="flex-1"></div>
+          <div className="flex items-center justify-center flex-1">
             <img
               src="/logo.png"
               alt="Логотип компании"
@@ -458,21 +449,68 @@ export default function Page() {
               }}
             />
           </div>
-          <div className="flex items-center justify-end pb-1.5">
-            <div className="flex flex-col items-end gap-1.5">
-              <AuthButton
-                onSignInClick={() => {
-                  setShowAuthModal(true);
-                  setAuthModalType("signin");
-                }}
-                onRegisterClick={() => {
-                  setShowAuthModal(true);
-                  setAuthModalType("register");
-                }}
-              />
-            </div>
+          <div className="flex items-center justify-end flex-1">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-colors"
+              aria-label="Открыть меню"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
         </div>
+
+        {/* Мобильное меню в Drawer */}
+        <Drawer.Root open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <Drawer.Portal>
+            <Drawer.Overlay className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
+            <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] mt-24 flex flex-col rounded-t-2xl bg-[#0A0A0A]/95 border-t border-white/10 max-h-[90vh]">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-white/20 mb-4 mt-3" />
+              <div className="px-4 py-4 overflow-y-auto">
+                <div className="space-y-6">
+                  {/* MegaMenu в мобильном меню */}
+                  <div className="flex justify-center">
+                    <MegaMenu 
+                      items={navItems} 
+                      onServiceClick={(serviceTitle) => {
+                        setSelectedService(serviceTitle);
+                        setShowServiceModal(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      onCasesAndReviewsClick={() => {
+                        setShowCasesAndReviewsModal(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      onContactsClick={() => {
+                        setShowContactsModal(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Разделитель */}
+                  <div className="border-t border-white/10"></div>
+                  
+                  {/* AuthButton в мобильном меню */}
+                  <div className="flex flex-col gap-2">
+                    <AuthButton
+                      onSignInClick={() => {
+                        setShowAuthModal(true);
+                        setAuthModalType("signin");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      onRegisterClick={() => {
+                        setShowAuthModal(true);
+                        setAuthModalType("register");
+                        setIsMobileMenuOpen(false);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Drawer.Content>
+          </Drawer.Portal>
+        </Drawer.Root>
 
         {/* Десктопная версия: логотип слева, меню по центру, кнопки справа */}
         <div className="hidden md:flex items-start justify-between gap-8">
