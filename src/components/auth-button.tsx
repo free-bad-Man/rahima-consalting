@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, LayoutDashboard } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface AuthButtonProps {
   onSignInClick?: () => void;
@@ -21,25 +22,37 @@ export default function AuthButton({ onSignInClick, onRegisterClick }: AuthButto
   if (session?.user) {
     return (
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 text-white/70 text-xs sm:text-sm">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-1 sm:gap-1.5 md:gap-2 text-white/70 hover:text-white text-xs sm:text-sm transition-colors"
+          title="Личный кабинет"
+        >
           {session.user.image ? (
             <Image
               src={session.user.image}
               alt={session.user.name || session.user.email || "User"}
               width={32}
               height={32}
-              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-white/20 object-cover"
+              className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-white/20 object-cover hover:border-white/40 transition-colors"
               unoptimized
             />
           ) : (
-            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 hover:bg-white/20 transition-colors">
               <User className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white/70" />
             </div>
           )}
           <span className="hidden sm:inline text-white/90 truncate max-w-[120px] md:max-w-none">
             {session.user.name || session.user.email}
           </span>
-        </div>
+        </Link>
+        <Link
+          href="/dashboard"
+          className="hidden sm:flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm transition-colors"
+          title="Личный кабинет"
+        >
+          <LayoutDashboard className="w-4 h-4 sm:w-4 md:w-5 md:h-5" />
+          <span className="hidden md:inline">Кабинет</span>
+        </Link>
         <button
           onClick={() => signOut()}
           className="flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2 rounded-lg bg-white/10 hover:bg-white/20 active:bg-white/30 text-white text-xs sm:text-sm transition-colors touch-manipulation"

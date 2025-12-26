@@ -46,6 +46,11 @@ model User {
   password       String?   // Пароль для email/password регистрации
   accounts       Account[]
   sessions       Session[]
+  profile        UserProfile?
+  orders         Order[]
+  documents      Document[]
+  notifications  Notification[]
+  notificationSettings NotificationSettings?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -56,5 +61,123 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// Расширенный профиль пользователя
+model UserProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  phone       String?
+  company     String?
+  position    String?
+  address     String?
+  city        String?
+  country     String?
+  website     String?
+  bio         String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Заказы/заявки на услуги
+model Order {
+  id          String   @id @default(cuid())
+  userId      String
+  serviceName String
+  description String?
+  status      OrderStatus @default(PENDING)
+  priority    OrderPriority @default(NORMAL)
+  amount      Float?
+  currency    String?  @default("RUB")
+  documents   Document[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING      // Ожидает обработки
+  IN_PROGRESS  // В работе
+  REVIEW       // На проверке
+  COMPLETED    // Выполнен
+  CANCELLED    // Отменен
+}
+
+enum OrderPriority {
+  LOW      // Низкий
+  NORMAL   // Обычный
+  HIGH     // Высокий
+  URGENT   // Срочный
+}
+
+// Документы пользователя
+model Document {
+  id          String   @id @default(cuid())
+  userId      String
+  orderId     String?
+  name        String
+  fileName    String
+  filePath    String
+  fileSize    Int       // Размер файла в байтах
+  mimeType    String    // MIME тип файла
+  category    String?   // Категория документа (invoice, contract, etc.)
+  description String?
+  createdAt   DateTime  @default(now())
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([orderId])
+}
+
+// Уведомления
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String
+  link        String?  // Ссылка для перехода при клике
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
+enum NotificationType {
+  ORDER_UPDATE    // Обновление заказа
+  DOCUMENT_READY  // Документ готов
+  REMINDER        // Напоминание
+  SYSTEM          // Системное уведомление
+  PROMOTION       // Акция/предложение
+}
+
+// Настройки уведомлений пользователя
+model NotificationSettings {
+  id                    String   @id @default(cuid())
+  userId                 String   @unique
+  emailEnabled           Boolean  @default(true)
+  emailOrderUpdates      Boolean  @default(true)
+  emailDocumentReady     Boolean  @default(true)
+  emailReminders         Boolean  @default(true)
+  emailPromotions        Boolean  @default(true)
+  pushEnabled            Boolean  @default(true)
+  pushOrderUpdates       Boolean  @default(true)
+  pushDocumentReady      Boolean  @default(true)
+  pushReminders          Boolean  @default(true)
+  pushPromotions         Boolean  @default(true)
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
