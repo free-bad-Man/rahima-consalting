@@ -18,6 +18,11 @@ const PrivacyPolicyModal = dynamic(() => import("@/components/privacy-policy-mod
   ssr: false,
 });
 
+// Динамическая загрузка модального окна условий использования
+const TermsOfUseModal = dynamic(() => import("@/components/terms-of-use-modal"), {
+  ssr: false,
+});
+
 const socialLinks = [
   {
     icon: Github,
@@ -45,6 +50,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   return (
     <>
@@ -116,9 +122,12 @@ export default function Footer() {
                 >
                   Политика конфиденциальности
                 </button>
-                <Link href="#" className="text-white/70 hover:text-white text-[10px] sm:text-xs md:text-sm transition-colors text-center md:text-right">
+                <button
+                  onClick={() => setIsTermsModalOpen(true)}
+                  className="text-white/70 hover:text-white text-[10px] sm:text-xs md:text-sm transition-colors text-center md:text-right"
+                >
                   Условия использования
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -133,6 +142,11 @@ export default function Footer() {
       {/* Модальное окно политики конфиденциальности */}
       <Suspense fallback={null}>
         <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
+      </Suspense>
+
+      {/* Модальное окно условий использования */}
+      <Suspense fallback={null}>
+        <TermsOfUseModal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} />
       </Suspense>
     </>
   );
