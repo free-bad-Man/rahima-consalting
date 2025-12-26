@@ -67,13 +67,13 @@ const formatDate = (dateString: string) => {
   }
 };
 
-export default function DocumentCard({ document, onDelete }: DocumentCardProps) {
+export default function DocumentCard({ document: doc, onDelete }: DocumentCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(`/api/documents/${document.id}`);
+      const response = await fetch(`/api/documents/${doc.id}`);
       
       if (!response.ok) {
         throw new Error("Ошибка при скачивании файла");
@@ -83,7 +83,7 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = document.fileName;
+      link.download = doc.fileName;
       document.body.appendChild(link);
       link.click();
       window.URL.revokeObjectURL(url);
@@ -95,7 +95,7 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Вы уверены, что хотите удалить документ "${document.name}"?`)) {
+    if (!confirm(`Вы уверены, что хотите удалить документ "${doc.name}"?`)) {
       return;
     }
 
@@ -103,7 +103,7 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
     setDeleteError(null);
 
     try {
-      const response = await fetch(`/api/documents/${document.id}`, {
+      const response = await fetch(`/api/documents/${doc.id}`, {
         method: "DELETE",
       });
 
@@ -112,7 +112,7 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
         throw new Error(data.error || "Ошибка при удалении документа");
       }
 
-      onDelete(document.id);
+      onDelete(doc.id);
     } catch (error) {
       console.error("Delete error:", error);
       setDeleteError(error instanceof Error ? error.message : "Ошибка при удалении");
@@ -123,12 +123,12 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
 
   const handleView = () => {
     // Открываем файл в новой вкладке для просмотра
-    window.open(`/api/documents/${document.id}`, "_blank");
+    window.open(`/api/documents/${doc.id}`, "_blank");
   };
 
-  const canPreview = document.mimeType.startsWith("image/") || 
-                     document.mimeType.includes("pdf") ||
-                     document.mimeType.includes("text/");
+  const canPreview = doc.mimeType.startsWith("image/") || 
+                     doc.mimeType.includes("pdf") ||
+                     doc.mimeType.includes("text/");
 
   return (
     <div className="rounded-xl md:rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300 overflow-hidden">
@@ -136,14 +136,14 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
         {/* Заголовок и иконка */}
         <div className="flex items-start gap-3 mb-4">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0 text-2xl">
-            {getFileIcon(document.mimeType)}
+            {getFileIcon(doc.mimeType)}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-white mb-1 truncate">
-              {document.name}
+              {doc.name}
             </h3>
             <p className="text-sm text-white/60 truncate">
-              {document.fileName}
+              {doc.fileName}
             </p>
           </div>
         </div>
@@ -152,32 +152,32 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm text-white/60">
             <FileText className="w-4 h-4" />
-            <span>{formatFileSize(document.fileSize)}</span>
+            <span>{formatFileSize(doc.fileSize)}</span>
           </div>
           
           <div className="flex items-center gap-2 text-sm text-white/60">
             <Calendar className="w-4 h-4" />
-            <span>{formatDate(document.createdAt)}</span>
+            <span>{formatDate(doc.createdAt)}</span>
           </div>
 
-          {document.order && (
+          {doc.order && (
             <div className="flex items-center gap-2 text-sm text-white/60">
               <Package className="w-4 h-4" />
-              <span className="truncate">{document.order.serviceName}</span>
+              <span className="truncate">{doc.order.serviceName}</span>
             </div>
           )}
 
-          {document.category && (
+          {doc.category && (
             <div className="inline-block px-2 py-1 rounded-md bg-purple-500/20 text-purple-400 text-xs font-medium">
-              {document.category}
+              {doc.category}
             </div>
           )}
         </div>
 
         {/* Описание */}
-        {document.description && (
+        {doc.description && (
           <p className="text-sm text-white/70 mb-4 line-clamp-2">
-            {document.description}
+            {doc.description}
           </p>
         )}
 
