@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, FileText, DollarSign, AlertCircle, Loader2, Save } from "lucide-react";
+import { X, Package, FileText, DollarSign, AlertCircle, Loader2, Save, ChevronDown } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Drawer } from "vaul";
+import { SERVICES_LIST } from "@/lib/services";
 
 interface CreateOrderModalProps {
   isOpen: boolean;
@@ -112,17 +113,25 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess }: CreateO
             Название услуги <span className="text-red-400">*</span>
           </label>
           <div className="relative">
-            <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-            <input
-              type="text"
+            <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 pointer-events-none z-10" />
+            <select
               id="serviceName"
               name="serviceName"
               value={formData.serviceName}
               onChange={handleChange}
               required
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors"
-              placeholder="Например: Бухгалтерское сопровождение ООО"
-            />
+              className="w-full pl-10 pr-10 py-2.5 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors appearance-none cursor-pointer"
+            >
+              <option value="" className="bg-[#0A0A0A] text-white/30">
+                Выберите услугу...
+              </option>
+              {SERVICES_LIST.map((service) => (
+                <option key={service} value={service} className="bg-[#0A0A0A] text-white">
+                  {service}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 pointer-events-none" />
           </div>
         </div>
 
