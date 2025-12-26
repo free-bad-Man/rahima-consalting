@@ -32,7 +32,7 @@ export default function OrdersList() {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "ALL">("ALL");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const fetchOrders = async (status?: OrderStatus) => {
+  const fetchOrders = async (status?: OrderStatus | "ALL") => {
     setIsLoading(true);
     setError(null);
 
