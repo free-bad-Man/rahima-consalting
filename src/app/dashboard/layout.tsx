@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import DashboardNav from "@/components/dashboard/dashboard-nav";
+import DashboardFooter from "@/components/dashboard/dashboard-footer";
 
 export default async function DashboardLayout({
   children,
@@ -28,6 +29,9 @@ export default async function DashboardLayout({
           </div>
         </main>
       </div>
+      
+      {/* Футер с анимацией появления при наведении вниз */}
+      <DashboardFooter />
     </div>
   );
 }

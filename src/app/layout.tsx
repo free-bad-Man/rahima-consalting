@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers/session-provider";
-import Footer from "@/components/footer";
+import ConditionalFooter from "@/components/conditional-footer";
 import PageLoader from "@/components/ui/page-loader";
 
 const geistSans = Geist({
@@ -55,7 +55,7 @@ export default function RootLayout({
         <PageLoader />
         <Providers>
           {children}
-          <Footer />
+          <ConditionalFooter />
         </Providers>
       </body>
     </html>
