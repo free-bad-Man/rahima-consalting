@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Обход мобильной версии: фиксируем "десктопную" минимальную ширину. */
+html,
+body {
+  min-width: 1024px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
