@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // GET - получение конкретного заказа
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -18,7 +18,7 @@ export async function GET(
     }
 
     const userId = (session.user as any).id;
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     const order = await prisma.order.findFirst({
       where: {
