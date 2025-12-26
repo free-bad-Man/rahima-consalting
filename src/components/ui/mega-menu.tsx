@@ -386,7 +386,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 z-[102] bg-black/50 backdrop-blur-sm"
                 onClick={closeModal}
               />
               <motion.div
@@ -394,7 +394,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="fixed z-[101] bg-[#0A0A0A]/95 md:bg-[#0A0A0A]/85 border-0 md:border border-white/10 rounded-none md:rounded-3xl flex flex-col overflow-hidden"
+                className="fixed z-[103] bg-[#0A0A0A]/95 md:bg-[#0A0A0A]/85 border-0 md:border border-white/10 rounded-none md:rounded-3xl flex flex-col overflow-hidden"
                 style={isMobile ? { 
                   top: 0,
                   left: 0,
@@ -443,7 +443,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                 style={{ 
                   WebkitOverflowScrolling: 'touch', 
                   minHeight: 0,
-                  touchAction: 'pan-y',
+                  touchAction: isMobile ? 'auto' : 'pan-y',
                   position: 'relative'
                 }}
               >
@@ -472,6 +472,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                         exit={direction === 'right' ? { x: '-100%', opacity: 0 } : { x: '100%', opacity: 0 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                         className={`grid ${isMobile && openMenu === "Услуги" ? 'grid-cols-1' : currentPage === 2 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4 md:gap-6 lg:gap-12`}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {items.find(item => item.label === openMenu)?.subMenus
                           ?.slice(
@@ -490,8 +491,9 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                               <ul className={currentPage === 2 ? 'space-y-6' : 'space-y-4'}>
                                 {sub.items.map((item) => {
                                   const Icon = iconMap[item.icon];
-                                  const handleClick = (e: React.MouseEvent) => {
+                                  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
                                     e.preventDefault();
+                                    e.stopPropagation();
                                     if (onServiceClick) {
                                       onServiceClick(item.label);
                                       closeModal();
@@ -502,7 +504,9 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                                       <button
                                         type="button"
                                         onClick={handleClick}
+                                        onTouchEnd={handleClick}
                                         className={`w-full text-left flex items-start group ${currentPage === 2 ? 'space-x-4' : 'space-x-3'}`}
+                                        style={{ touchAction: 'manipulation', pointerEvents: 'auto', WebkitTapHighlightColor: 'transparent' }}
                                       >
                                         <div className={`flex shrink-0 items-center justify-center rounded-lg border border-white/30 bg-gradient-to-br from-purple-500/20 to-blue-500/20 transition-all duration-300 group-hover:from-purple-500/40 group-hover:to-blue-500/40 group-hover:border-purple-400/50 ${currentPage === 2 ? 'size-12' : 'size-10'}`}>
                                           <Icon className={`flex-none ${currentPage === 2 ? 'h-6 w-6' : 'h-5 w-5'} stroke-purple-400`} />
@@ -546,7 +550,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                                 e.stopPropagation();
                                 prevPage();
                               }}
-                              className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white transition-colors z-[102] shadow-lg touch-manipulation"
+                              className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white transition-colors z-[104] shadow-lg touch-manipulation"
                               aria-label="Предыдущая страница"
                               style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
                             >
@@ -569,7 +573,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                                 e.stopPropagation();
                                 nextPage();
                               }}
-                              className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white transition-colors z-[102] shadow-lg touch-manipulation"
+                              className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white transition-colors z-[104] shadow-lg touch-manipulation"
                               aria-label="Следующая страница"
                               style={{ touchAction: 'manipulation', pointerEvents: 'auto' }}
                             >

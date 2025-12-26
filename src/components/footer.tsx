@@ -13,6 +13,11 @@ const AIChatAssistant = dynamic(() => import("@/components/ai-chat-assistant"), 
   ssr: false,
 });
 
+// Динамическая загрузка модального окна политики конфиденциальности
+const PrivacyPolicyModal = dynamic(() => import("@/components/privacy-policy-modal"), {
+  ssr: false,
+});
+
 const socialLinks = [
   {
     icon: Github,
@@ -31,7 +36,7 @@ const socialLinks = [
   },
   {
     icon: Instagram,
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/reel/DRuRZO6iPMu/?utm_source=ig_web_copy_link",
     label: "Instagram",
   },
 ];
@@ -39,6 +44,7 @@ const socialLinks = [
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   return (
     <>
@@ -104,9 +110,12 @@ export default function Footer() {
 
               {/* Блок 3: Правовая информация (справа) */}
               <div className="flex flex-col items-center md:items-end gap-1.5 sm:gap-2 w-full md:w-auto">
-                <Link href="#" className="text-white/70 hover:text-white text-[10px] sm:text-xs md:text-sm transition-colors text-center md:text-right">
+                <button
+                  onClick={() => setIsPrivacyModalOpen(true)}
+                  className="text-white/70 hover:text-white text-[10px] sm:text-xs md:text-sm transition-colors text-center md:text-right"
+                >
                   Политика конфиденциальности
-                </Link>
+                </button>
                 <Link href="#" className="text-white/70 hover:text-white text-[10px] sm:text-xs md:text-sm transition-colors text-center md:text-right">
                   Условия использования
                 </Link>
@@ -119,6 +128,11 @@ export default function Footer() {
       {/* Чат помощник */}
       <Suspense fallback={null}>
         <AIChatAssistant isOpen={isChatOpen} onOpenChange={setIsChatOpen} hideButton={true} />
+      </Suspense>
+
+      {/* Модальное окно политики конфиденциальности */}
+      <Suspense fallback={null}>
+        <PrivacyPolicyModal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} />
       </Suspense>
     </>
   );
