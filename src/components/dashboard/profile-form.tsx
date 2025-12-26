@@ -67,6 +67,23 @@ export default function ProfileForm({ user: initialUser, profile: initialProfile
     setMessage(null);
 
     try {
+      // Предварительная проверка на клиенте
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!file.type.startsWith("image/")) {
+        throw new Error(
+          `Неподдерживаемый тип файла. Загружен файл типа: ${file.type || "неизвестный"}, размер: ${fileSizeMB} MB. ` +
+          `Поддерживаются только изображения (JPG, PNG, GIF, WebP)`
+        );
+      }
+
+      if (file.size > maxSize) {
+        throw new Error(
+          `Размер файла превышает допустимый лимит. Размер файла: ${fileSizeMB} MB, максимальный размер: 5 MB`
+        );
+      }
+
       const formData = new FormData();
       formData.append("avatar", file);
 
@@ -78,6 +95,7 @@ export default function ProfileForm({ user: initialUser, profile: initialProfile
       const data = await response.json();
 
       if (!response.ok) {
+        // Сервер вернул детальную ошибку
         throw new Error(data.error || "Ошибка при загрузке аватара");
       }
 
@@ -93,10 +111,13 @@ export default function ProfileForm({ user: initialUser, profile: initialProfile
 
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка при загрузке аватара";
       setMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "Ошибка при загрузке аватара",
+        text: errorMessage,
       });
+      // Показываем сообщение об ошибке дольше, чтобы пользователь успел прочитать детали
+      setTimeout(() => setMessage(null), 8000);
     } finally {
       setIsUploadingAvatar(false);
       // Сбрасываем input для возможности повторной загрузки того же файла

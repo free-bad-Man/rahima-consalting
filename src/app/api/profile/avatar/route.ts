@@ -29,16 +29,23 @@ export async function POST(request: NextRequest) {
 
     // Проверка типа файла
     if (!file.type.startsWith("image/")) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       return NextResponse.json(
-        { error: "Файл должен быть изображением" },
+        { 
+          error: `Файл должен быть изображением. Загружен файл типа: ${file.type || "неизвестный"}, размер: ${fileSizeMB} MB` 
+        },
         { status: 400 }
       );
     }
 
     // Проверка размера (макс 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       return NextResponse.json(
-        { error: "Размер файла не должен превышать 5MB" },
+        { 
+          error: `Размер файла превышает допустимый лимит. Размер файла: ${fileSizeMB} MB, максимальный размер: 5 MB` 
+        },
         { status: 400 }
       );
     }
@@ -94,8 +101,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Avatar upload error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка";
     return NextResponse.json(
-      { error: "Ошибка при загрузке аватара" },
+      { 
+        error: `Ошибка при загрузке аватара: ${errorMessage}. Проверьте формат файла (поддерживаются: JPG, PNG, GIF, WebP) и размер (максимум 5 MB)` 
+      },
       { status: 500 }
     );
   }
