@@ -9,7 +9,11 @@ export async function GET(
 ) {
   try {
     const { path: pathArray } = await params;
-    const filePath = join(process.cwd(), "uploads", "avatars", ...pathArray);
+    // Определяем базовую директорию для загрузок
+    // На сервере (Vercel) используем /tmp, локально - uploads
+    const isServer = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+    const baseDir = isServer ? "/tmp" : process.cwd();
+    const filePath = join(baseDir, "uploads", "avatars", ...pathArray);
 
     if (!existsSync(filePath)) {
       return new NextResponse("File not found", { status: 404 });

@@ -50,10 +50,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Определяем базовую директорию для загрузок
+    // На сервере (Vercel) используем /tmp, локально - uploads
+    const isServer = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+    const baseDir = isServer ? "/tmp" : process.cwd();
+    const uploadsBaseDir = join(baseDir, "uploads");
+    
     // Создаем директорию для аватаров, если её нет
-    const avatarsDir = join(process.cwd(), "uploads", "avatars", userId);
-    if (!existsSync(avatarsDir)) {
+    // Используем recursive: true для создания всех родительских директорий
+    const avatarsDir = join(uploadsBaseDir, "avatars", userId);
+    try {
       await mkdir(avatarsDir, { recursive: true });
+    } catch (error) {
+      console.error("Error creating avatars directory:", error);
+      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка";
+      return NextResponse.json(
+        { 
+          error: `Ошибка при создании директории для аватара: ${errorMessage}. Размер файла: ${(file.size / (1024 * 1024)).toFixed(2)} MB. Проверьте права доступа к файловой системе.` 
+        },
+        { status: 500 }
+      );
     }
 
     // Удаляем старый аватар, если есть
@@ -84,7 +100,10 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, buffer);
 
     // Сохраняем путь в базе данных
-    const relativePath = `/uploads/avatars/${userId}/${fileName}`;
+    // На сервере используем полный путь, локально - относительный
+    const relativePath = isServer 
+      ? filePath 
+      : `/uploads/avatars/${userId}/${fileName}`;
     
     const profile = await prisma.userProfile.upsert({
       where: { userId },
@@ -131,7 +150,12 @@ export async function DELETE(request: NextRequest) {
 
     if (profile?.avatar) {
       // Удаляем файл
-      const filePath = join(process.cwd(), profile.avatar);
+      // Проверяем, является ли путь абсолютным (сервер) или относительным (локально)
+      const isServer = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+      const filePath = profile.avatar.startsWith("/") && !profile.avatar.startsWith("/uploads")
+        ? profile.avatar // Абсолютный путь на сервере
+        : join(process.cwd(), profile.avatar); // Относительный путь локально
+      
       if (existsSync(filePath)) {
         try {
           await unlink(filePath);
