@@ -1,7 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Copy, Mail, MapPin, Phone, Github, Twitter, Linkedin, Instagram, type LucideIcon } from "lucide-react";
+import { X, Check, Copy, Mail, MapPin, Phone, Twitter, Instagram, type LucideIcon } from "lucide-react";
+import VKIcon from "@/components/icons/vk-icon";
+import TelegramIcon from "@/components/icons/telegram-icon";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -35,9 +37,9 @@ export default function ContactsModal({ isOpen, onClose }: ContactsModalProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const socialLinks = [
     {
-      icon: Github,
-      href: "https://github.com",
-      label: "GitHub",
+      icon: VKIcon,
+      href: "https://vk.com/rahimabiz",
+      label: "ВКонтакте",
     },
     {
       icon: Twitter,
@@ -45,9 +47,9 @@ export default function ContactsModal({ isOpen, onClose }: ContactsModalProps) {
       label: "Twitter",
     },
     {
-      icon: Linkedin,
-      href: "https://linkedin.com",
-      label: "LinkedIn",
+      icon: TelegramIcon,
+      href: "https://t.me/centr_reg",
+      label: "Telegram",
     },
     {
       icon: Instagram,

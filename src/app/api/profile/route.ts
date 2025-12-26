@@ -41,7 +41,20 @@ export async function GET() {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
-      profile: user.profile,
+      profile: user.profile
+        ? {
+            id: user.profile.id,
+            phone: user.profile.phone,
+            company: user.profile.company,
+            position: user.profile.position,
+            address: user.profile.address,
+            city: user.profile.city,
+            country: user.profile.country,
+            website: user.profile.website,
+            bio: user.profile.bio,
+            avatar: user.profile.avatar,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Profile GET error:", error);

@@ -3,7 +3,9 @@
 import { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Mail, Phone, Github, Twitter, Linkedin, Instagram, MessageCircle } from "lucide-react";
+import { Mail, Phone, Twitter, Instagram, MessageCircle } from "lucide-react";
+import VKIcon from "@/components/icons/vk-icon";
+import TelegramIcon from "@/components/icons/telegram-icon";
 
 const APP_EMAIL = "info@rahima-consulting.ru";
 const APP_PHONE = "+7 (978) 998-72-22";
@@ -25,9 +27,9 @@ const TermsOfUseModal = dynamic(() => import("@/components/terms-of-use-modal"),
 
 const socialLinks = [
   {
-    icon: Github,
-    href: "https://github.com",
-    label: "GitHub",
+    icon: VKIcon,
+    href: "https://vk.com/rahimabiz",
+    label: "ВКонтакте",
   },
   {
     icon: Twitter,
@@ -35,9 +37,9 @@ const socialLinks = [
     label: "Twitter",
   },
   {
-    icon: Linkedin,
-    href: "https://linkedin.com",
-    label: "LinkedIn",
+    icon: TelegramIcon,
+    href: "https://t.me/centr_reg",
+    label: "Telegram",
   },
   {
     icon: Instagram,

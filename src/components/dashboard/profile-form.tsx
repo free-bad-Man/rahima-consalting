@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { User, Mail, Phone, Building2, Briefcase, MapPin, Globe, FileText, Save, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Building2, Briefcase, MapPin, Globe, FileText, Save, Loader2, Camera, X } from "lucide-react";
 import Image from "next/image";
 
 interface ProfileFormProps {
@@ -23,6 +23,7 @@ interface ProfileFormProps {
     country: string | null;
     website: string | null;
     bio: string | null;
+    avatar: string | null;
   } | null;
 }
 
@@ -30,7 +31,14 @@ export default function ProfileForm({ user: initialUser, profile: initialProfile
   const { data: session, update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Определяем текущий аватар (приоритет: загруженный > OAuth image)
+  const [avatar, setAvatar] = useState(
+    initialProfile?.avatar || initialUser.image || null
+  );
 
   const [formData, setFormData] = useState({
     name: initialUser.name || "",
@@ -49,6 +57,93 @@ export default function ProfileForm({ user: initialUser, profile: initialProfile
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setMessage(null);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при загрузке аватара");
+      }
+
+      setAvatar(data.avatar);
+      if (updateSession) {
+        await updateSession();
+      }
+
+      setMessage({
+        type: "success",
+        text: "Аватар успешно загружен",
+      });
+
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Ошибка при загрузке аватара",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+      // Сбрасываем input для возможности повторной загрузки того же файла
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!confirm("Вы уверены, что хотите удалить аватар?")) {
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/profile/avatar", {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка при удалении аватара");
+      }
+
+      setAvatar(initialUser.image || null);
+      if (updateSession) {
+        await updateSession();
+      }
+
+      setMessage({
+        type: "success",
+        text: "Аватар удален",
+      });
+
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Ошибка при удалении аватара",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,20 +215,75 @@ export default function ProfileForm({ user: initialUser, profile: initialProfile
           <div className="space-y-4 md:space-y-6">
             {/* Аватар и имя */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
-              <div className="flex-shrink-0">
-                {initialUser.image ? (
-                  <Image
-                    src={initialUser.image}
-                    alt={initialUser.name || "User"}
-                    width={80}
-                    height={80}
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white/20 object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center border-2 border-white/20">
-                    <User className="w-8 h-8 md:w-10 md:h-10 text-white" />
+              <div className="flex-shrink-0 relative group">
+                {avatar ? (
+                  <div className="relative">
+                    <Image
+                      src={
+                        avatar.startsWith("/uploads")
+                          ? `/api/profile/avatar/${avatar.replace("/uploads/avatars/", "")}`
+                          : avatar
+                      }
+                      alt={formData.name || "User"}
+                      width={80}
+                      height={80}
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-white/20 object-cover"
+                      unoptimized
+                    />
+                    {/* Overlay для загрузки/удаления */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            className="hidden"
+                            disabled={isUploadingAvatar}
+                          />
+                          {isUploadingAvatar ? (
+                            <Loader2 className="w-4 h-4 text-white animate-spin" />
+                          ) : (
+                            <Camera className="w-4 h-4 text-white" />
+                          )}
+                        </label>
+                        {avatar.startsWith("/uploads") && (
+                          <button
+                            onClick={handleAvatarDelete}
+                            disabled={isUploadingAvatar}
+                            className="p-1.5 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                            title="Удалить аватар"
+                          >
+                            <X className="w-4 h-4 text-white" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  <label className="cursor-pointer">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center border-2 border-white/20 hover:border-purple-500/50 transition-colors relative group/avatar">
+                      {isUploadingAvatar ? (
+                        <Loader2 className="w-8 h-8 md:w-10 md:h-10 text-white animate-spin" />
+                      ) : (
+                        <>
+                          <User className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                            <Camera className="w-6 h-6 text-white" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                      disabled={isUploadingAvatar}
+                    />
+                  </label>
                 )}
               </div>
               <div className="flex-1 w-full">
