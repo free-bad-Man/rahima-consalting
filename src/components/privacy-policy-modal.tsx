@@ -318,3 +318,4 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyMod
   );
 }
 
+

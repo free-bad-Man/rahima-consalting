@@ -6,6 +6,7 @@ import { Menu, User as UserIcon } from "lucide-react";
 import { Drawer } from "vaul";
 import MegaMenu, { type MegaMenuItem } from "@/components/ui/mega-menu";
 import AuthButton from "@/components/auth-button";
+import NotificationsDropdown from "@/components/notifications-dropdown";
 
 // Lazy loading для тяжелых компонентов
 const ShaderBackground = dynamic(() => import("@/components/ui/shader-background"), { 
@@ -517,8 +518,11 @@ export default function Page() {
                   {/* Разделитель */}
                   <div className="border-t border-white/10"></div>
                   
-                  {/* AuthButton в мобильном меню */}
+                  {/* Уведомления и AuthButton в мобильном меню */}
                   <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <NotificationsDropdown />
+                    </div>
                     <AuthButton
                       onSignInClick={() => {
                         setShowAuthModal(true);
@@ -575,7 +579,8 @@ export default function Page() {
             />
           </div>
           <div className="flex items-start justify-end flex-1 pt-2">
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-3">
+              <NotificationsDropdown />
               <AuthButton
                 onSignInClick={() => {
                   setShowAuthModal(true);

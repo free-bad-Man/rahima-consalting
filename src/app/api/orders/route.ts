@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus, OrderPriority } from "@prisma/client";
+import { createNotification } from "@/lib/notifications";
+import { NotificationType } from "@prisma/client";
 
 // GET - получение списка заказов пользователя
 export async function GET(request: Request) {
@@ -110,6 +112,20 @@ export async function POST(request: Request) {
         documents: true,
       },
     });
+
+    // Создаем уведомление о создании заказа
+    try {
+      await createNotification({
+        userId,
+        type: NotificationType.ORDER_UPDATE,
+        title: "Новый заказ создан",
+        message: `Ваш заказ "${serviceName.trim()}" успешно создан и ожидает обработки.`,
+        link: `/dashboard/orders`,
+      });
+    } catch (notificationError) {
+      // Логируем ошибку, но не прерываем создание заказа
+      console.error("Error creating notification for order:", notificationError);
+    }
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {

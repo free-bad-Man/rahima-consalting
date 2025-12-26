@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { User, Package, FileText, Bell, Settings, BarChart3 } from "lucide-react";
+import { User, Package, FileText, Bell, Settings, BarChart3, Clock, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { OrderStatus } from "@prisma/client";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -14,8 +15,27 @@ export default async function DashboardPage() {
   // Получаем статистику пользователя
   const userId = (session.user as any).id;
   
-  const [ordersCount, documentsCount, unreadNotificationsCount] = await Promise.all([
+  const [
+    ordersCount,
+    activeOrdersCount,
+    completedOrdersCount,
+    documentsCount,
+    unreadNotificationsCount,
+    recentOrders,
+  ] = await Promise.all([
     prisma.order.count({ where: { userId } }),
+    prisma.order.count({ 
+      where: { 
+        userId,
+        status: { in: ["PENDING", "IN_PROGRESS", "REVIEW"] }
+      } 
+    }),
+    prisma.order.count({ 
+      where: { 
+        userId,
+        status: "COMPLETED"
+      } 
+    }),
     prisma.document.count({ where: { userId } }),
     prisma.notification.count({ 
       where: { 
@@ -23,15 +43,29 @@ export default async function DashboardPage() {
         read: false 
       } 
     }),
+    prisma.order.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: {
+        documents: {
+          select: {
+            id: true,
+          },
+          take: 1,
+        },
+      },
+    }),
   ]);
 
   const stats = [
     {
-      name: "Активные заказы",
+      name: "Всего заказов",
       value: ordersCount,
       icon: Package,
       href: "/dashboard/orders",
       color: "from-purple-600 to-blue-600",
+      subtitle: `${activeOrdersCount} активных`,
     },
     {
       name: "Документы",
@@ -86,6 +120,9 @@ export default async function DashboardPage() {
               <p className="text-2xl md:text-3xl font-bold text-white">
                 {stat.value}
               </p>
+              {stat.subtitle && (
+                <p className="text-xs text-white/40 mt-1">{stat.subtitle}</p>
+              )}
             </Link>
           );
         })}
@@ -124,30 +161,118 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Последние заказы (заглушка для следующего шага) */}
-      <div className="rounded-xl md:rounded-2xl border border-white/10 bg-white/5 p-6">
+      {/* Последние заказы */}
+      <div className="rounded-xl md:rounded-2xl border border-white/10 bg-white/5 p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-white">Последние заказы</h2>
-          <Link
-            href="/dashboard/orders"
-            className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-          >
-            Посмотреть все
-          </Link>
+          {ordersCount > 0 && (
+            <Link
+              href="/dashboard/orders"
+              className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              Посмотреть все →
+            </Link>
+          )}
         </div>
         {ordersCount === 0 ? (
           <div className="text-center py-8">
             <Package className="w-12 h-12 text-white/20 mx-auto mb-4" />
-            <p className="text-white/60">У вас пока нет заказов</p>
+            <p className="text-white/60 mb-2">У вас пока нет заказов</p>
             <Link
               href="/"
-              className="mt-4 inline-block text-purple-400 hover:text-purple-300 transition-colors"
+              className="mt-4 inline-block text-purple-400 hover:text-purple-300 transition-colors text-sm"
             >
               Выбрать услугу
             </Link>
           </div>
         ) : (
-          <p className="text-white/60 text-sm">Заказы будут отображаться здесь</p>
+          <div className="space-y-3">
+            {recentOrders.map((order) => {
+              const getStatusColor = (status: OrderStatus) => {
+                switch (status) {
+                  case OrderStatus.PENDING:
+                    return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
+                  case OrderStatus.IN_PROGRESS:
+                    return "text-blue-400 bg-blue-400/10 border-blue-400/20";
+                  case OrderStatus.REVIEW:
+                    return "text-purple-400 bg-purple-400/10 border-purple-400/20";
+                  case OrderStatus.COMPLETED:
+                    return "text-green-400 bg-green-400/10 border-green-400/20";
+                  case OrderStatus.CANCELLED:
+                    return "text-red-400 bg-red-400/10 border-red-400/20";
+                  default:
+                    return "text-white/60 bg-white/5 border-white/10";
+                }
+              };
+
+              const getStatusLabel = (status: OrderStatus) => {
+                switch (status) {
+                  case OrderStatus.PENDING:
+                    return "Ожидает";
+                  case OrderStatus.IN_PROGRESS:
+                    return "В работе";
+                  case OrderStatus.REVIEW:
+                    return "На проверке";
+                  case OrderStatus.COMPLETED:
+                    return "Завершен";
+                  case OrderStatus.CANCELLED:
+                    return "Отменен";
+                  default:
+                    return status;
+                }
+              };
+
+              return (
+                <Link
+                  key={order.id}
+                  href={`/dashboard/orders`}
+                  className="block p-4 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-white font-medium group-hover:text-purple-400 transition-colors truncate">
+                          {order.serviceName}
+                        </h3>
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(
+                            order.status
+                          )}`}
+                        >
+                          {getStatusLabel(order.status)}
+                        </span>
+                      </div>
+                      {order.description && (
+                        <p className="text-white/60 text-sm mb-2 line-clamp-2">
+                          {order.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-white/50">
+                        <span>
+                          {new Date(order.createdAt).toLocaleDateString("ru-RU", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {order.amount && (
+                          <span>
+                            {order.amount} {order.currency || "RUB"}
+                          </span>
+                        )}
+                        {order.documents.length > 0 && (
+                          <span className="flex items-center gap-1">
+                            <FileText className="w-3 h-3" />
+                            {order.documents.length} документ{order.documents.length > 1 ? "ов" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
