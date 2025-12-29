@@ -1,5 +1,9 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // Standalone output для Docker (оптимизированный размер образа)
+  output: 'standalone',
+  
   // Разрешаем загрузку изображений из Google
   images: {
     remotePatterns: [

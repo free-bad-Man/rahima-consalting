@@ -1,0 +1,83 @@
+services:
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: always
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./npm_data:/data
+      - ./npm_letsencrypt:/etc/letsencrypt
+
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=n8n_xxxxxxxxxxxxxxxxxxxxxxxx
+      - POSTGRES_PASSWORD=xxxxxxxxxxxxxxxxxxxxxxxx
+      - POSTGRES_DB=n8n_db
+    volumes:
+      - db_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n_admin -d n8n_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_USER=n8n_xxxxxxxxxxxxxxxxxxxxxxxx
+      - DB_POSTGRESDB_PASSWORD=xxxxxxxxxxxxxxxxxxxxxxxx
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - N8N_ENCRYPTION_KEY=xxxxxxxxxxxxxxxxxxxxxxxx
+      - N8N_HOST=ai.rahima-consulting.ru
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://ai.rahima-consulting.ru
+    volumes:
+      - n8n_storage:/home/node/.n8n
+
+  main-app:
+    build:
+      context: ../main-app
+      dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=postgresql://xxxxxxxxxxxxxxxxxxxxxxxx/n8n_db
+        - PRISMA_DATABASE_URL=postgresql://xxxxxxxxxxxxxxxxxxxxxxxx/n8n_db
+        - NEXTAUTH_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+        - NEXTAUTH_URL=https://rahima-consulting.ru
+        - GOOGLE_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxx.com 
+        - GOOGLE_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx 
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://xxxxxxxxxxxxxxxxxxxxxxxx/n8n_db
+      - PRISMA_DATABASE_URL=postgresql://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/n8n_db
+      - NEXTAUTH_SECRET=rxxxxxxxxxxxxxxxxxxxxxxxx
+      - NEXTAUTH_URL=https://rahima-consulting.ru
+      - AUTH_TRUST_HOST=true
+      - NODE_ENV=production
+      - GOOGLE_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxx.com 
+      - GOOGLE_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx 
+    volumes:
+      - uploads_storage:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # Проверка через node (так как wget может отсутствовать в alpine)
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/api/auth/check-config', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Порт 3000 доступен внутри Docker сети для nginx-proxy-manager
+
+volumes:
+  db_storage:
+  n8n_storage:
+  uploads_storage:
+

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -38,8 +40,15 @@ export async function GET(
       );
     }
 
-    // Читаем файл
-    const filePath = join(process.cwd(), document.filePath);
+    // Определяем путь к файлу
+    // UPLOADS_DIR env > /app (Docker) > /tmp (Vercel) > process.cwd() (локально)
+    const baseDir = process.env.UPLOADS_DIR || 
+      (process.env.VERCEL === "1" ? "/tmp" : null) ||
+      (process.env.NODE_ENV === 'production' ? "/app" : null) ||
+      process.cwd();
+    const filePath = document.filePath.startsWith('/') 
+      ? document.filePath 
+      : join(baseDir, document.filePath);
     
     if (!existsSync(filePath)) {
       return NextResponse.json(
@@ -100,8 +109,15 @@ export async function DELETE(
       );
     }
 
-    // Удаляем файл с диска
-    const filePath = join(process.cwd(), document.filePath);
+    // Определяем путь к файлу для удаления
+    // UPLOADS_DIR env > /app (Docker) > /tmp (Vercel) > process.cwd() (локально)
+    const baseDir = process.env.UPLOADS_DIR || 
+      (process.env.VERCEL === "1" ? "/tmp" : null) ||
+      (process.env.NODE_ENV === 'production' ? "/app" : null) ||
+      process.cwd();
+    const filePath = document.filePath.startsWith('/') 
+      ? document.filePath 
+      : join(baseDir, document.filePath);
     if (existsSync(filePath)) {
       const { unlink } = await import("fs/promises");
       await unlink(filePath);

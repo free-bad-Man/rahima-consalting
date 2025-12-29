@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -51,9 +53,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Определяем базовую директорию для загрузок
-    // На сервере (Vercel) используем /tmp, локально - uploads
-    const isServer = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
-    const baseDir = isServer ? "/tmp" : process.cwd();
+    // UPLOADS_DIR env > /app (Docker) > /tmp (Vercel) > process.cwd() (локально)
+    const baseDir = process.env.UPLOADS_DIR || 
+      (process.env.VERCEL === "1" ? "/tmp" : null) ||
+      (process.env.NODE_ENV === 'production' ? "/app" : null) ||
+      process.cwd();
     const uploadsBaseDir = join(baseDir, "uploads");
     
     // Создаем директорию для аватаров, если её нет
@@ -78,7 +82,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingProfile?.avatar) {
-      const oldFilePath = join(process.cwd(), existingProfile.avatar);
+      // Используем ту же логику определения базовой директории
+      const oldFilePath = existingProfile.avatar.startsWith('/') 
+        ? existingProfile.avatar 
+        : join(baseDir, existingProfile.avatar);
       if (existsSync(oldFilePath)) {
         try {
           await unlink(oldFilePath);
@@ -99,11 +106,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    // Сохраняем путь в базе данных
-    // На сервере используем полный путь, локально - относительный
-    const relativePath = isServer 
-      ? filePath 
-      : `/uploads/avatars/${userId}/${fileName}`;
+    // Сохраняем путь в базе данных (всегда относительный путь)
+    const relativePath = `/uploads/avatars/${userId}/${fileName}`;
     
     const profile = await prisma.userProfile.upsert({
       where: { userId },
@@ -149,12 +153,15 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (profile?.avatar) {
+      // Определяем базовую директорию (та же логика что и при загрузке)
+      const baseDir = process.env.UPLOADS_DIR || 
+        (process.env.VERCEL === "1" ? "/tmp" : null) ||
+        (process.env.NODE_ENV === 'production' ? "/app" : null) ||
+        process.cwd();
       // Удаляем файл
-      // Проверяем, является ли путь абсолютным (сервер) или относительным (локально)
-      const isServer = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
       const filePath = profile.avatar.startsWith("/") && !profile.avatar.startsWith("/uploads")
-        ? profile.avatar // Абсолютный путь на сервере
-        : join(process.cwd(), profile.avatar); // Относительный путь локально
+        ? profile.avatar // Абсолютный путь (старые записи)
+        : join(baseDir, profile.avatar); // Относительный путь
       
       if (existsSync(filePath)) {
         try {

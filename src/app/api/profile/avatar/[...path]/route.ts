@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { join } from "path";
@@ -10,9 +12,11 @@ export async function GET(
   try {
     const { path: pathArray } = await params;
     // Определяем базовую директорию для загрузок
-    // На сервере (Vercel) используем /tmp, локально - uploads
-    const isServer = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
-    const baseDir = isServer ? "/tmp" : process.cwd();
+    // UPLOADS_DIR env > /app (Docker) > /tmp (Vercel) > process.cwd() (локально)
+    const baseDir = process.env.UPLOADS_DIR || 
+      (process.env.VERCEL === "1" ? "/tmp" : null) ||
+      (process.env.NODE_ENV === 'production' ? "/app" : null) ||
+      process.cwd();
     const filePath = join(baseDir, "uploads", "avatars", ...pathArray);
 
     if (!existsSync(filePath)) {

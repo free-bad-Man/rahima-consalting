@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -126,8 +128,13 @@ export async function POST(request: Request) {
       }
     }
 
-    // Создаем директорию для загрузок, если её нет
-    const uploadsDir = join(process.cwd(), "uploads", userId);
+    // Определяем базовую директорию для загрузок
+    // UPLOADS_DIR env > /app (Docker) > /tmp (Vercel) > process.cwd() (локально)
+    const baseDir = process.env.UPLOADS_DIR || 
+      (process.env.VERCEL === "1" ? "/tmp" : null) ||
+      (process.env.NODE_ENV === 'production' ? "/app" : null) ||
+      process.cwd();
+    const uploadsDir = join(baseDir, "uploads", userId);
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true });
     }
@@ -144,6 +151,9 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
+    // Сохраняем путь в БД (всегда относительный путь)
+    const dbFilePath = `uploads/${userId}/${uniqueFileName}`;
+
     // Сохраняем информацию о документе в БД
     const document = await prisma.document.create({
       data: {
@@ -151,7 +161,7 @@ export async function POST(request: Request) {
         orderId: orderId || null,
         name: name || originalFileName,
         fileName: originalFileName,
-        filePath: `uploads/${userId}/${uniqueFileName}`,
+        filePath: dbFilePath,
         fileSize: file.size,
         mimeType: file.type || "application/octet-stream",
         category: category || null,

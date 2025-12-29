@@ -20,3 +20,5 @@ export default function VKIcon({ className = "w-4 h-4", size }: VKIconProps) {
   );
 }
 
+
+
