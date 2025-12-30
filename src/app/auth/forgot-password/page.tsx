@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle, X } from "lucide-react";
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  const handleClose = () => {
+    router.push("/");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +35,12 @@ export default function ForgotPasswordPage() {
       }
 
       setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Произошла неизвестная ошибка");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +49,15 @@ export default function ForgotPasswordPage() {
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
-        <div className="bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 p-8 shadow-2xl max-w-md w-full">
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+        <div className="relative z-[101] bg-[#0A0A0A]/85 border border-white/10 rounded-3xl p-8 shadow-2xl max-w-md w-full">
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            aria-label="Закрыть"
+          >
+            <X className="h-4 w-4" />
+          </button>
           <div className="text-center">
             <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-green-400" />
@@ -69,7 +87,28 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
-      <div className="bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 p-8 shadow-2xl max-w-md w-full">
+      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+      <div className="relative z-[101] bg-[#0A0A0A]/85 border border-white/10 rounded-3xl p-8 shadow-2xl max-w-md w-full">
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          aria-label="Закрыть"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Логотип */}
+        <div className="flex justify-center mb-6">
+          <img
+            src="/logo.png"
+            alt="Rahima Consulting"
+            className="h-12 w-auto object-contain"
+            style={{ 
+              filter: 'brightness(0) saturate(100%) invert(27%) sepia(100%) saturate(2000%) hue-rotate(250deg) brightness(1.5) contrast(1.1)',
+            }}
+          />
+        </div>
+
         <div className="text-center mb-6">
           <div className="mx-auto w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mb-4">
             <Mail className="w-8 h-8 text-purple-400" />

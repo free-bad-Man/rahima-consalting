@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, ArrowLeft, Loader2, CheckCircle, Eye, EyeOff, XCircle } from "lucide-react";
+import { Lock, ArrowLeft, Loader2, CheckCircle, Eye, EyeOff, XCircle, X } from "lucide-react";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
@@ -16,25 +17,38 @@ function ResetPasswordForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  const handleClose = () => {
+    router.push("/");
+  };
+
   if (!token) {
     return (
-      <div className="text-center">
-        <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
-          <XCircle className="w-8 h-8 text-red-400" />
-        </div>
-        <h1 className="text-2xl font-bold text-white mb-2">
-          Недействительная ссылка
-        </h1>
-        <p className="text-white/70 mb-6">
-          Ссылка для сброса пароля недействительна или просрочена.
-        </p>
-        <Link
-          href="/auth/forgot-password"
-          className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all"
+      <>
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          aria-label="Закрыть"
         >
-          Запросить новую ссылку
-        </Link>
-      </div>
+          <X className="h-4 w-4" />
+        </button>
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+            <XCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Недействительная ссылка
+          </h1>
+          <p className="text-white/70 mb-6">
+            Ссылка для сброса пароля недействительна или просрочена.
+          </p>
+          <Link
+            href="/auth/forgot-password"
+            className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all"
+          >
+            Запросить новую ссылку
+          </Link>
+        </div>
+      </>
     );
   }
 
@@ -68,8 +82,12 @@ function ResetPasswordForm() {
       }
 
       setIsSuccess(true);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Произошла неизвестная ошибка");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -77,28 +95,57 @@ function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="text-center">
-        <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
-          <CheckCircle className="w-8 h-8 text-green-400" />
-        </div>
-        <h1 className="text-2xl font-bold text-white mb-2">
-          Пароль изменён!
-        </h1>
-        <p className="text-white/70 mb-6">
-          Ваш пароль был успешно изменён. Теперь вы можете войти с новым паролем.
-        </p>
-        <Link
-          href="/auth/signin"
-          className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all"
+      <>
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          aria-label="Закрыть"
         >
-          Войти
-        </Link>
-      </div>
+          <X className="h-4 w-4" />
+        </button>
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="w-8 h-8 text-green-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Пароль изменён!
+          </h1>
+          <p className="text-white/70 mb-6">
+            Ваш пароль был успешно изменён. Теперь вы можете войти с новым паролем.
+          </p>
+          <Link
+            href="/auth/signin"
+            className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all"
+          >
+            Войти
+          </Link>
+        </div>
+      </>
     );
   }
 
   return (
     <>
+      <button
+        onClick={handleClose}
+        className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+        aria-label="Закрыть"
+      >
+        <X className="h-4 w-4" />
+      </button>
+
+      {/* Логотип */}
+      <div className="flex justify-center mb-6">
+        <img
+          src="/logo.png"
+          alt="Rahima Consulting"
+          className="h-12 w-auto object-contain"
+          style={{ 
+            filter: 'brightness(0) saturate(100%) invert(27%) sepia(100%) saturate(2000%) hue-rotate(250deg) brightness(1.5) contrast(1.1)',
+          }}
+        />
+      </div>
+
       <div className="text-center mb-6">
         <div className="mx-auto w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mb-4">
           <Lock className="w-8 h-8 text-purple-400" />
@@ -190,7 +237,8 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4">
-      <div className="bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 p-8 shadow-2xl max-w-md w-full">
+      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
+      <div className="relative z-[101] bg-[#0A0A0A]/85 border border-white/10 rounded-3xl p-8 shadow-2xl max-w-md w-full">
         <Suspense fallback={
           <div className="text-center text-white">
             <Loader2 className="w-8 h-8 animate-spin mx-auto" />

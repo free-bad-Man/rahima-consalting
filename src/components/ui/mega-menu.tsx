@@ -311,9 +311,9 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
                 )}
               </div>
 
-              {navItem.subMenus && (
+              {navItem.subMenus && !isModalMenu && (
                 <AnimatePresence mode="wait">
-                  {(isOpen || (isModalMenu && openMenu === navItem.label)) && (
+                  {isOpen && (
                     <div className="absolute left-0 top-full w-auto pt-2 z-10 hidden md:block">
                       <motion.div
                         key={navItem.label}

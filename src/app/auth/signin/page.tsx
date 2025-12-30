@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 function SignInForm() {
   const searchParams = useSearchParams();
@@ -16,6 +17,10 @@ function SignInForm() {
     password: "",
   });
   const [error, setError] = useState("");
+
+  const handleClose = () => {
+    router.push("/");
+  };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,18 +53,38 @@ function SignInForm() {
 
   const handleGoogleSignIn = () => {
     setIsGoogleLoading(true);
-    // Прямой переход на URL авторизации
     window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" />
+      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative z-[101] bg-[#0A0A0A]/85 border border-white/10 rounded-3xl p-8 shadow-2xl max-w-md w-full mx-4">
-        <h1 className="text-xl font-semibold text-white mb-2">
+        {/* Кнопка закрытия */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          aria-label="Закрыть"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Логотип */}
+        <div className="flex justify-center mb-6">
+          <img
+            src="/logo.png"
+            alt="Rahima Consulting"
+            className="h-12 w-auto object-contain"
+            style={{ 
+              filter: 'brightness(0) saturate(100%) invert(27%) sepia(100%) saturate(2000%) hue-rotate(250deg) brightness(1.5) contrast(1.1)',
+            }}
+          />
+        </div>
+
+        <h1 className="text-xl font-semibold text-white mb-2 text-center">
           Вход в систему
         </h1>
-        <p className="text-white/70 text-sm mb-8">
+        <p className="text-white/70 text-sm mb-8 text-center">
           Войдите в свой аккаунт
         </p>
 
