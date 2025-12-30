@@ -3,15 +3,15 @@ export const fetchCache = "force-no-store";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  // Возвращаем только статус конфигурации без раскрытия чувствительной информации
+  // Не раскрываем длины секретов и точные URL - это может помочь атакующему
   const config = {
-    hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
-    hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-    hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
-    hasDatabaseUrl: !!process.env.DATABASE_URL,
-    nextAuthUrl: process.env.NEXTAUTH_URL || "not set",
-    googleClientIdLength: process.env.GOOGLE_CLIENT_ID?.length || 0,
-    googleClientSecretLength: process.env.GOOGLE_CLIENT_SECRET?.length || 0,
-    nextAuthSecretLength: process.env.NEXTAUTH_SECRET?.length || 0,
+    status: "ok",
+    configured: {
+      google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      auth: !!process.env.NEXTAUTH_SECRET,
+      database: !!(process.env.DATABASE_URL || process.env.PRISMA_DATABASE_URL),
+    },
   };
 
   return NextResponse.json(config);

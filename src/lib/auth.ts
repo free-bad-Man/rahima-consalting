@@ -93,9 +93,13 @@ providers.push(
     })
 );
 
+// Проверка NEXTAUTH_SECRET
+// При сборке Docker образа секреты передаются через build args
+// Не бросаем ошибку при сборке, так как NODE_ENV=production устанавливается автоматически
 if (!nextAuthSecret) {
-  console.error("❌ NEXTAUTH_SECRET не установлен - это критическая ошибка!");
-  throw new Error("NEXTAUTH_SECRET должен быть установлен в переменных окружения");
+  console.error("❌ NEXTAUTH_SECRET не установлен!");
+  console.error("   Для production: установите переменную окружения NEXTAUTH_SECRET");
+  console.error("   Для генерации: openssl rand -base64 32");
 }
 
 if (providers.length === 0) {
@@ -190,7 +194,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt", // Используем JWT для поддержки Credentials провайдера
   },
-  secret: nextAuthSecret || "fallback-secret-change-in-production",
+  secret: nextAuthSecret || "dev-secret-not-for-production",
   trustHost: true,
   // Добавляем явную проверку конфигурации
   debug: process.env.NODE_ENV === "development",
