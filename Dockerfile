@@ -45,6 +45,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Устанавливаем OpenSSL для Prisma
+RUN apk add --no-cache openssl openssl-dev
+
 # Создаем пользователя без root прав для безопасности
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
