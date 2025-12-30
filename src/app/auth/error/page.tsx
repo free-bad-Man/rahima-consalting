@@ -19,7 +19,7 @@ function ErrorContent() {
               <br />• GOOGLE_CLIENT_ID
               <br />• GOOGLE_CLIENT_SECRET
               <br />• NEXTAUTH_SECRET
-              <br />• NEXTAUTH_URL=https://www.rahima-consulting.ru
+              <br />• NEXTAUTH_URL=https://rahima-consulting.ru
             </p>
           </>
         );
