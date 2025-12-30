@@ -183,9 +183,18 @@ export default function AuthModal({ isOpen, onClose, initialType = "signin" }: A
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-medium text-white/50 mb-1.5">
-              Пароль
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="password" className="block text-xs font-medium text-white/50">
+                Пароль
+              </label>
+              <a 
+                href="/auth/forgot-password" 
+                className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                onClick={onClose}
+              >
+                Забыли пароль?
+              </a>
+            </div>
             <input
               id="password"
               type="password"
