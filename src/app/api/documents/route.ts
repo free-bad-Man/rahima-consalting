@@ -111,6 +111,53 @@ export async function POST(request: Request) {
       );
     }
 
+    // Валидация типа файла - разрешаем только безопасные типы
+    const allowedMimeTypes = [
+      // Документы
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "text/plain",
+      "text/csv",
+      // Изображения
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      // Архивы
+      "application/zip",
+      "application/x-rar-compressed",
+      "application/x-7z-compressed",
+    ];
+    
+    const allowedExtensions = [
+      "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+      "txt", "csv", "jpg", "jpeg", "png", "gif", "webp",
+      "zip", "rar", "7z"
+    ];
+    
+    const fileExtension = file.name.split(".").pop()?.toLowerCase();
+    const mimeType = file.type || "application/octet-stream";
+    
+    if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+      return NextResponse.json(
+        { error: `Тип файла не разрешен. Разрешенные расширения: ${allowedExtensions.join(", ")}` },
+        { status: 400 }
+      );
+    }
+    
+    // Проверяем MIME тип (если указан)
+    if (mimeType !== "application/octet-stream" && !allowedMimeTypes.includes(mimeType)) {
+      return NextResponse.json(
+        { error: "Тип файла не разрешен для загрузки" },
+        { status: 400 }
+      );
+    }
+
     // Проверяем, что orderId принадлежит пользователю (если указан)
     if (orderId) {
       const order = await prisma.order.findFirst({
@@ -142,7 +189,6 @@ export async function POST(request: Request) {
     // Генерируем уникальное имя файла
     const timestamp = Date.now();
     const originalFileName = file.name;
-    const fileExtension = originalFileName.split(".").pop();
     const uniqueFileName = `${timestamp}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
     const filePath = join(uploadsDir, uniqueFileName);
 
