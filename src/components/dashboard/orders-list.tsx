@@ -13,7 +13,11 @@ interface Order {
   status: OrderStatus;
   priority: string;
   amount: number | null;
+  monthlyAmount: number | null;
+  oneTimeAmount: number | null;
   currency: string | null;
+  source: "MANUAL" | "CALCULATOR" | "CONTACT" | "N8N";
+  calculatorData: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;

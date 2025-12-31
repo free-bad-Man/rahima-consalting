@@ -435,6 +435,10 @@ export default function Page() {
         <CalculatorModal
           isOpen={showCalculator}
           onClose={() => setShowCalculator(false)}
+          onAuthRequired={() => {
+            setShowAuthModal(true);
+            setAuthModalType("register");
+          }}
         />
       )}
       <header className="fixed top-0 left-0 right-0 z-50 w-full px-2 sm:px-3 md:px-6 lg:px-12 xl:px-20 py-1 md:py-1">

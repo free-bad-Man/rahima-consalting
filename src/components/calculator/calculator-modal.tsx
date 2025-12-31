@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { 
   X, 
   ArrowLeft, 
@@ -16,7 +17,8 @@ import {
   Sparkles,
   TrendingDown,
   Send,
-  Loader2
+  Loader2,
+  LogIn
 } from "lucide-react";
 import { 
   BusinessType, 
@@ -32,6 +34,7 @@ interface CalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialService?: string;
+  onAuthRequired?: () => void; // Callback для открытия модалки авторизации
 }
 
 // Начальные значения
@@ -69,14 +72,17 @@ const initialServices: SelectedServices = {
   marketingStrategy: false,
 };
 
-export default function CalculatorModal({ isOpen, onClose, initialService }: CalculatorModalProps) {
+export default function CalculatorModal({ isOpen, onClose, initialService, onAuthRequired }: CalculatorModalProps) {
+  const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [businessParams, setBusinessParams] = useState<BusinessParams>(initialBusinessParams);
   const [services, setServices] = useState<SelectedServices>(initialServices);
-  const [contactData, setContactData] = useState({ name: "", phone: "", email: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  
+  const isAuthenticated = status === "authenticated" && !!session?.user;
 
   useEffect(() => {
     setMounted(true);
@@ -108,25 +114,47 @@ export default function CalculatorModal({ isOpen, onClose, initialService }: Cal
   const comparison = compareWithEmployee(result.monthly);
 
   const handleSubmit = async () => {
+    // Проверяем авторизацию
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await fetch("/api/contact", {
+      const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: contactData.name,
-          email: contactData.email,
-          phone: contactData.phone,
-          message: `Заявка из калькулятора:\n\nТип бизнеса: ${businessParams.businessType}\nСистема налогообложения: ${businessParams.taxSystem}\nСотрудников: ${businessParams.employeesCount}\nОпераций/мес: ${businessParams.operationsCount}\n\nРасчётная стоимость: ${result.monthly.toLocaleString()} ₽/мес + ${result.oneTime.toLocaleString()} ₽ разово\n\nВыбранные услуги:\n${result.packages.map(p => `- ${p.name}`).join("\n")}`,
-          service: "Калькулятор услуг",
+          serviceName: result.packages.map(p => p.name).join(", ") || "Расчёт из калькулятора",
+          description: `Тип бизнеса: ${businessParams.businessType}\nСистема налогообложения: ${businessParams.taxSystem}\nСотрудников: ${businessParams.employeesCount}\nОпераций/мес: ${businessParams.operationsCount}\nНДС: ${businessParams.hasNds ? "Да" : "Нет"}\nВЭД: ${businessParams.hasVed ? "Да" : "Нет"}`,
+          source: "calculator",
+          monthlyAmount: result.monthly,
+          oneTimeAmount: result.oneTime,
+          calculatorData: {
+            businessParams,
+            services,
+            packages: result.packages,
+          },
         }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+
       setSubmitted(true);
     } catch (error) {
       console.error("Error submitting:", error);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Обработчик нажатия "Войти" в prompt
+  const handleAuthClick = () => {
+    onClose();
+    onAuthRequired?.();
   };
 
   if (!mounted) return null;
@@ -227,11 +255,13 @@ export default function CalculatorModal({ isOpen, onClose, initialService }: Cal
                     result={result}
                     comparison={comparison}
                     params={businessParams}
-                    contactData={contactData}
-                    setContactData={setContactData}
                     onSubmit={handleSubmit}
                     isSubmitting={isSubmitting}
                     submitted={submitted}
+                    isAuthenticated={isAuthenticated}
+                    showAuthPrompt={showAuthPrompt}
+                    onAuthClick={handleAuthClick}
+                    userName={session?.user?.name}
                   />
                 )}
               </AnimatePresence>
@@ -615,20 +645,24 @@ function StepResult({
   result, 
   comparison, 
   params,
-  contactData,
-  setContactData,
   onSubmit,
   isSubmitting,
-  submitted
+  submitted,
+  isAuthenticated,
+  showAuthPrompt,
+  onAuthClick,
+  userName,
 }: { 
   result: { monthly: number; oneTime: number; packages: ServicePackage[] };
   comparison: { employeeCost: number; savings: number; savingsPercent: number };
   params: BusinessParams;
-  contactData: { name: string; phone: string; email: string };
-  setContactData: (d: { name: string; phone: string; email: string }) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
   submitted: boolean;
+  isAuthenticated: boolean;
+  showAuthPrompt: boolean;
+  onAuthClick: () => void;
+  userName?: string | null;
 }) {
   if (submitted) {
     return (
@@ -641,7 +675,8 @@ function StepResult({
           <Check className="w-10 h-10 text-green-400" />
         </div>
         <h3 className="text-2xl font-bold text-white mb-2">Заявка отправлена!</h3>
-        <p className="text-white/60 mb-6">Мы свяжемся с вами в ближайшее время для уточнения деталей</p>
+        <p className="text-white/60 mb-4">Мы отправили подтверждение на вашу почту</p>
+        <p className="text-white/50 text-sm">Отслеживайте статус заявки в <a href="/dashboard/orders" className="text-purple-400 hover:underline">личном кабинете</a></p>
       </motion.div>
     );
   }
@@ -722,48 +757,57 @@ function StepResult({
               )}
             </div>
 
-            {/* Форма */}
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
-              <h4 className="text-white font-semibold">Получить точный расчёт:</h4>
-              <input
-                type="text"
-                placeholder="Ваше имя"
-                value={contactData.name}
-                onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <input
-                type="tel"
-                placeholder="Телефон"
-                value={contactData.phone}
-                onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={contactData.email}
-                onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <button
-                onClick={onSubmit}
-                disabled={isSubmitting || !contactData.name || !contactData.phone}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Отправка...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    Отправить заявку
-                  </>
-                )}
-              </button>
-            </div>
+            {/* Блок отправки заявки */}
+            {isAuthenticated ? (
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <Check className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{userName || "Пользователь"}</p>
+                    <p className="text-white/50 text-sm">Вы авторизованы</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onSubmit}
+                  disabled={isSubmitting || result.packages.length === 0}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Отправка...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Отправить заявку
+                    </>
+                  )}
+                </button>
+                <p className="text-white/50 text-xs text-center">
+                  Заявка появится в вашем личном кабинете
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 space-y-4">
+                <div className="text-center">
+                  <LogIn className="w-10 h-10 text-purple-400 mx-auto mb-3" />
+                  <h4 className="text-white font-semibold mb-2">Войдите для отправки заявки</h4>
+                  <p className="text-white/60 text-sm">
+                    Заявка будет сохранена в вашем личном кабинете, где вы сможете отслеживать её статус
+                  </p>
+                </div>
+                <button
+                  onClick={onAuthClick}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-white/90 transition-all"
+                >
+                  <LogIn className="w-5 h-5" />
+                  Войти или зарегистрироваться
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

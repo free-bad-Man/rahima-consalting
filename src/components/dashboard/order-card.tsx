@@ -9,10 +9,12 @@ import {
   Clock, 
   CheckCircle2,
   XCircle,
-  AlertCircle,
   Eye,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Calculator,
+  CreditCard,
+  Repeat
 } from "lucide-react";
 import { OrderStatus } from "@prisma/client";
 
@@ -23,7 +25,11 @@ interface Order {
   status: OrderStatus;
   priority: string;
   amount: number | null;
+  monthlyAmount: number | null;
+  oneTimeAmount: number | null;
   currency: string | null;
+  source: "MANUAL" | "CALCULATOR" | "CONTACT" | "N8N";
+  calculatorData: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
@@ -78,6 +84,13 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
   NORMAL: { label: "Обычный", color: "text-blue-400" },
   HIGH: { label: "Высокий", color: "text-orange-400" },
   URGENT: { label: "Срочный", color: "text-red-400" },
+};
+
+const sourceConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  MANUAL: { label: "Ручная заявка", icon: FileText, color: "text-gray-400" },
+  CALCULATOR: { label: "Калькулятор", icon: Calculator, color: "text-purple-400" },
+  CONTACT: { label: "Форма обратной связи", icon: FileText, color: "text-blue-400" },
+  N8N: { label: "Автоматически", icon: Package, color: "text-green-400" },
 };
 
 export default function OrderCard({ order, onUpdate }: OrderCardProps) {
@@ -146,10 +159,14 @@ export default function OrderCard({ order, onUpdate }: OrderCardProps) {
                 <Calendar className="w-4 h-4" />
                 <span>{formatDate(order.createdAt)}</span>
               </div>
-              {order.amount && (
-                <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4" />
-                  <span>{formatCurrency(order.amount, order.currency)}</span>
+              {/* Источник заявки */}
+              {order.source && sourceConfig[order.source] && (
+                <div className={`flex items-center gap-1.5 ${sourceConfig[order.source].color}`}>
+                  {(() => {
+                    const SourceIcon = sourceConfig[order.source].icon;
+                    return <SourceIcon className="w-4 h-4" />;
+                  })()}
+                  <span>{sourceConfig[order.source].label}</span>
                 </div>
               )}
               {order.documents.length > 0 && (
@@ -159,6 +176,35 @@ export default function OrderCard({ order, onUpdate }: OrderCardProps) {
                 </div>
               )}
             </div>
+
+            {/* Стоимость для заявок из калькулятора */}
+            {(order.monthlyAmount || order.oneTimeAmount) && (
+              <div className="flex flex-wrap items-center gap-4 p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+                {order.monthlyAmount && order.monthlyAmount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Repeat className="w-4 h-4 text-purple-400" />
+                    <span className="text-white font-medium">
+                      {order.monthlyAmount.toLocaleString()} ₽/мес
+                    </span>
+                  </div>
+                )}
+                {order.oneTimeAmount && order.oneTimeAmount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-blue-400" />
+                    <span className="text-white font-medium">
+                      {order.oneTimeAmount.toLocaleString()} ₽ разово
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Обычная стоимость */}
+            {!order.monthlyAmount && !order.oneTimeAmount && order.amount && (
+              <div className="flex items-center gap-1.5 text-sm text-white/60">
+                <DollarSign className="w-4 h-4" />
+                <span>{formatCurrency(order.amount, order.currency)}</span>
+              </div>
+            )}
           </div>
 
           {/* Правая часть - кнопка раскрытия */}
@@ -182,8 +228,27 @@ export default function OrderCard({ order, onUpdate }: OrderCardProps) {
           {/* Полное описание */}
           {order.description && (
             <div>
-              <h4 className="text-sm font-medium text-white/70 mb-2">Описание:</h4>
-              <p className="text-white/80 text-sm md:text-base">{order.description}</p>
+              <h4 className="text-sm font-medium text-white/70 mb-2">Параметры:</h4>
+              <p className="text-white/80 text-sm md:text-base whitespace-pre-line">{order.description}</p>
+            </div>
+          )}
+
+          {/* Детали калькулятора */}
+          {order.calculatorData && order.source === "CALCULATOR" && (
+            <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+              <h4 className="text-sm font-medium text-white/70 mb-3 flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-purple-400" />
+                Выбранные услуги:
+              </h4>
+              <div className="space-y-2">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(order.calculatorData as any).packages?.map((pkg: { name: string; price: string }, index: number) => (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <span className="text-white/80">{pkg.name}</span>
+                    <span className="text-white/60">{pkg.price}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -227,6 +292,13 @@ export default function OrderCard({ order, onUpdate }: OrderCardProps) {
                 <p className="text-sm text-white/80">{formatDate(order.completedAt)}</p>
               </div>
             )}
+          </div>
+
+          {/* ID заявки */}
+          <div className="pt-2 border-t border-white/10">
+            <p className="text-xs text-white/40">
+              ID: {order.id}
+            </p>
           </div>
         </div>
       )}

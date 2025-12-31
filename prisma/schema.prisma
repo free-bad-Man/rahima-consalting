@@ -103,8 +103,13 @@ model Order {
   status      OrderStatus @default(PENDING)
   priority    OrderPriority @default(NORMAL)
   amount      Float?
+  monthlyAmount Float?    // Ежемесячная сумма (для калькулятора)
+  oneTimeAmount Float?    // Разовая сумма (для калькулятора)
   currency    String?  @default("RUB")
+  source      OrderSource @default(MANUAL)  // Источник заявки
+  calculatorData Json?    // Данные калькулятора (JSON)
   documents   Document[]
+  statusHistory OrderStatusHistory[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   completedAt DateTime?
@@ -113,6 +118,29 @@ model Order {
 
   @@index([userId])
   @@index([status])
+  @@index([source])
+}
+
+// История изменения статуса заявки
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  comment   String?
+  changedBy String?     // Кто изменил (userId или "system" или "n8n")
+  createdAt DateTime    @default(now())
+  
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// Источник заявки
+enum OrderSource {
+  MANUAL      // Ручное создание
+  CALCULATOR  // Калькулятор
+  CONTACT     // Форма обратной связи
+  N8N         // Через n8n
 }
 
 enum OrderStatus {
