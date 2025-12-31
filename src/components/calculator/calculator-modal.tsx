@@ -83,6 +83,7 @@ export default function CalculatorModal({ isOpen, onClose, initialService, onAut
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   
   const isAuthenticated = status === "authenticated" && !!session?.user;
+  const isLoadingAuth = status === "loading";
 
   useEffect(() => {
     setMounted(true);
@@ -259,6 +260,7 @@ export default function CalculatorModal({ isOpen, onClose, initialService, onAut
                     isSubmitting={isSubmitting}
                     submitted={submitted}
                     isAuthenticated={isAuthenticated}
+                    isLoadingAuth={isLoadingAuth}
                     showAuthPrompt={showAuthPrompt}
                     onAuthClick={handleAuthClick}
                     userName={session?.user?.name}
@@ -649,6 +651,7 @@ function StepResult({
   isSubmitting,
   submitted,
   isAuthenticated,
+  isLoadingAuth,
   showAuthPrompt,
   onAuthClick,
   userName,
@@ -660,6 +663,7 @@ function StepResult({
   isSubmitting: boolean;
   submitted: boolean;
   isAuthenticated: boolean;
+  isLoadingAuth: boolean;
   showAuthPrompt: boolean;
   onAuthClick: () => void;
   userName?: string | null;
@@ -758,7 +762,12 @@ function StepResult({
             </div>
 
             {/* Блок отправки заявки */}
-            {isAuthenticated ? (
+            {isLoadingAuth ? (
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-purple-400 animate-spin mr-3" />
+                <span className="text-white/60">Проверка авторизации...</span>
+              </div>
+            ) : isAuthenticated ? (
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
