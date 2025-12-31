@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { Menu, User as UserIcon } from "lucide-react";
+import { Menu, User as UserIcon, Calculator } from "lucide-react";
 import { Drawer } from "vaul";
 import MegaMenu, { type MegaMenuItem } from "@/components/ui/mega-menu";
 import AuthButton from "@/components/auth-button";
@@ -27,6 +27,7 @@ const ServiceModal = dynamic(() => import("@/components/service-modal").then(mod
 const CasesAndReviewsModal = dynamic(() => import("@/components/cases-and-reviews-modal").then(mod => ({ default: mod.default })), { ssr: false });
 const ContactsModal = dynamic(() => import("@/components/contacts-modal").then(mod => ({ default: mod.default })), { ssr: false });
 const AIChatAssistant = dynamic(() => import("@/components/ai-chat-assistant").then(mod => ({ default: mod.default })), { ssr: false });
+const CalculatorModal = dynamic(() => import("@/components/calculator/calculator-modal").then(mod => ({ default: mod.default })), { ssr: false });
 
 const sections = [
   {
@@ -396,6 +397,7 @@ export default function Page() {
   const [selectedService, setSelectedService] = useState<string>("");
   const [showCasesAndReviewsModal, setShowCasesAndReviewsModal] = useState(false);
   const [showContactsModal, setShowContactsModal] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileAuth, setShowMobileAuth] = useState(false);
@@ -427,6 +429,12 @@ export default function Page() {
         <ContactsModal
           isOpen={showContactsModal}
           onClose={() => setShowContactsModal(false)}
+        />
+      )}
+      {showCalculator && (
+        <CalculatorModal
+          isOpen={showCalculator}
+          onClose={() => setShowCalculator(false)}
         />
       )}
       <header className="fixed top-0 left-0 right-0 z-50 w-full px-2 sm:px-3 md:px-6 lg:px-12 xl:px-20 py-1 md:py-1">
@@ -520,6 +528,17 @@ export default function Page() {
                   
                   {/* Уведомления и AuthButton в мобильном меню */}
                   <div className="flex flex-col gap-2">
+                    {/* Кнопка калькулятора в мобильном меню */}
+                    <button
+                      onClick={() => {
+                        setShowCalculator(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium"
+                    >
+                      <Calculator className="w-5 h-5" />
+                      Рассчитать стоимость
+                    </button>
                     <div className="flex items-center justify-center gap-2">
                       <NotificationsDropdown />
                     </div>
@@ -580,6 +599,15 @@ export default function Page() {
           </div>
           <div className="flex items-start justify-end flex-1 pt-2">
             <div className="flex items-center gap-3">
+              {/* Кнопка калькулятора */}
+              <button
+                onClick={() => setShowCalculator(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
+                title="Рассчитать стоимость услуг"
+              >
+                <Calculator className="w-4 h-4" />
+                <span className="hidden lg:inline">Калькулятор</span>
+              </button>
               <NotificationsDropdown />
               <AuthButton
                 onSignInClick={() => {
