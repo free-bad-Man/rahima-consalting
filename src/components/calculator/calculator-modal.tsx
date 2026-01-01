@@ -115,16 +115,12 @@ export default function CalculatorModal({ isOpen, onClose, initialService, onAut
   const comparison = compareWithEmployee(result.monthly);
 
   const handleSubmit = async () => {
-    console.log("handleSubmit called, isAuthenticated:", isAuthenticated, "status:", status);
-    
     // Проверяем авторизацию
     if (!isAuthenticated) {
-      console.log("User not authenticated, showing auth prompt");
       setShowAuthPrompt(true);
       return;
     }
 
-    console.log("Submitting order...");
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/orders", {
@@ -144,19 +140,13 @@ export default function CalculatorModal({ isOpen, onClose, initialService, onAut
         }),
       });
 
-      console.log("Response status:", response.status);
-      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Order creation failed:", errorData);
         throw new Error("Failed to create order");
       }
 
-      console.log("Order created successfully!");
       setSubmitted(true);
     } catch (error) {
-      console.error("Error submitting:", error);
-      alert("Ошибка при отправке заявки. Проверьте консоль браузера.");
+      console.error("Error submitting order:", error);
     } finally {
       setIsSubmitting(false);
     }
