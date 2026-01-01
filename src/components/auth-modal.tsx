@@ -74,7 +74,7 @@ export default function AuthModal({ isOpen, onClose, initialType = "signin" }: A
 
   const handleGoogleSignIn = () => {
     setIsGoogleLoading(true);
-    window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+    signIn("google", { callbackUrl: window.location.pathname });
   };
 
   const handleRegister = async (e: React.FormEvent) => {

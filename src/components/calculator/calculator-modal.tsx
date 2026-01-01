@@ -780,7 +780,7 @@ function StepResult({
                 </div>
                 <button
                   onClick={onSubmit}
-                  disabled={isSubmitting || result.packages.length === 0}
+                  disabled={isSubmitting}
                   className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
