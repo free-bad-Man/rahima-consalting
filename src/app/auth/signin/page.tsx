@@ -53,7 +53,7 @@ function SignInForm() {
 
   const handleGoogleSignIn = () => {
     setIsGoogleLoading(true);
-    window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    signIn("google", { callbackUrl });
   };
 
   return (
