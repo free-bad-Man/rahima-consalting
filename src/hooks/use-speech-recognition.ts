@@ -82,8 +82,13 @@ export function useSpeechRecognition({
           }
         }
 
+        // Если есть финальный результат, отправляем его
         if (finalTranscript && onResult) {
           onResult(finalTranscript.trim());
+        }
+        // Если есть промежуточный результат и включен continuous, тоже отправляем для отображения
+        else if (interimTranscript && continuous && onResult) {
+          // Не отправляем промежуточные результаты, только финальные
         }
       };
 
@@ -146,27 +151,33 @@ export function useSpeechRecognition({
       return;
     }
 
-    // Предотвращаем множественные запуски
+    // Если уже слушаем, не запускаем повторно
     if (isListening) {
       return;
     }
 
     try {
-      // Останавливаем предыдущее распознавание если оно было
+      // Сначала полностью останавливаем и очищаем предыдущее распознавание
       try {
-        recognitionRef.current.stop();
+        if (recognitionRef.current) {
+          recognitionRef.current.abort();
+        }
       } catch (e) {
-        // Игнорируем ошибки остановки
+        // Игнорируем ошибки при очистке
       }
       
-      // Небольшая задержка перед запуском нового
+      // Задержка для полной очистки перед новым запуском
       setTimeout(() => {
-        if (recognitionRef.current && !isListening) {
+        if (recognitionRef.current) {
           try {
             recognitionRef.current.start();
           } catch (err: any) {
-            // Игнорируем ошибку "already started"
-            if (err?.message && !err.message.includes("already started") && !err.message.includes("aborted")) {
+            // Игнорируем ошибки "already started", "aborted", "not started"
+            const errorMsg = err?.message || String(err) || "";
+            if (!errorMsg.includes("already started") && 
+                !errorMsg.includes("aborted") &&
+                !errorMsg.includes("not started")) {
+              console.error("Error starting recognition:", err);
               setError("Не удалось запустить распознавание речи");
               if (onError) {
                 onError("Не удалось запустить распознавание речи");
@@ -174,7 +185,7 @@ export function useSpeechRecognition({
             }
           }
         }
-      }, 100);
+      }, 300);
     } catch (err) {
       console.error("Error starting recognition:", err);
     }

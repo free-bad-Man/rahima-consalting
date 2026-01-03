@@ -47,7 +47,7 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
   // Голосовое распознавание
   const { isListening, isSupported, error: speechError, startListening, stopListening } = useSpeechRecognition({
     onResult: (text) => {
-      setInputValue((prev) => prev + (prev ? " " : "") + text);
+      setInputValue((prev) => prev ? prev + " " + text : text);
     },
     onError: (error) => {
       console.error("Speech recognition error:", error);
