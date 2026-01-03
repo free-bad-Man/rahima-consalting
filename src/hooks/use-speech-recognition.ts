@@ -88,12 +88,19 @@ export function useSpeechRecognition({
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        // Игнорируем ошибку "aborted" - это нормально при остановке
+        if (event.error === "aborted") {
+          setIsListening(false);
+          return;
+        }
+
         let errorMessage = "Произошла ошибка распознавания речи";
         
         switch (event.error) {
           case "no-speech":
-            errorMessage = "Речь не обнаружена. Попробуйте еще раз.";
-            break;
+            // Не показываем ошибку для no-speech, просто останавливаем
+            setIsListening(false);
+            return;
           case "audio-capture":
             errorMessage = "Микрофон не найден или недоступен.";
             break;
@@ -139,23 +146,48 @@ export function useSpeechRecognition({
       return;
     }
 
+    // Предотвращаем множественные запуски
+    if (isListening) {
+      return;
+    }
+
     try {
-      recognitionRef.current.start();
-    } catch (err) {
-      // Если уже запущено, игнорируем ошибку
-      if (err instanceof Error && !err.message.includes("already started")) {
-        setError("Не удалось запустить распознавание речи");
-        if (onError) {
-          onError("Не удалось запустить распознавание речи");
-        }
+      // Останавливаем предыдущее распознавание если оно было
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Игнорируем ошибки остановки
       }
+      
+      // Небольшая задержка перед запуском нового
+      setTimeout(() => {
+        if (recognitionRef.current && !isListening) {
+          try {
+            recognitionRef.current.start();
+          } catch (err: any) {
+            // Игнорируем ошибку "already started"
+            if (err?.message && !err.message.includes("already started") && !err.message.includes("aborted")) {
+              setError("Не удалось запустить распознавание речи");
+              if (onError) {
+                onError("Не удалось запустить распознавание речи");
+              }
+            }
+          }
+        }
+      }, 100);
+    } catch (err) {
+      console.error("Error starting recognition:", err);
     }
   };
 
   const stopListening = () => {
-    if (recognitionRef.current && isListening) {
+    if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
+        if (isListening) {
+          recognitionRef.current.stop();
+        } else {
+          recognitionRef.current.abort();
+        }
       } catch (err) {
         console.error("Error stopping recognition:", err);
       }

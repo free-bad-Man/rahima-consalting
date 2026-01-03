@@ -59,12 +59,13 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
 
   // Автозапуск голосового ввода если startWithVoice
   useEffect(() => {
-    if (isOpen && startWithVoice && isSupported) {
-      setTimeout(() => {
+    if (isOpen && startWithVoice && isSupported && !isListening) {
+      const timer = setTimeout(() => {
         startListening();
-      }, 500);
+      }, 800);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen, startWithVoice, isSupported, startListening]);
+  }, [isOpen, startWithVoice, isSupported]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
