@@ -49,6 +49,7 @@ export function useSpeechRecognition({
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const isListeningRef = useRef(false);
 
   useEffect(() => {
     const windowWithSpeech = window as WindowWithSpeechRecognition;
@@ -65,6 +66,7 @@ export function useSpeechRecognition({
       recognition.lang = language;
 
       recognition.onstart = () => {
+        isListeningRef.current = true;
         setIsListening(true);
         setError(null);
       };
@@ -103,31 +105,60 @@ export function useSpeechRecognition({
         
         switch (event.error) {
           case "no-speech":
-            // Не показываем ошибку для no-speech, просто останавливаем
-            setIsListening(false);
+            // При no-speech в continuous режиме не останавливаем, просто продолжаем слушать
+            if (!continuous) {
+              setIsListening(false);
+            }
             return;
           case "audio-capture":
             errorMessage = "Микрофон не найден или недоступен.";
+            setIsListening(false);
             break;
           case "not-allowed":
             errorMessage = "Доступ к микрофону запрещен. Разрешите доступ в настройках браузера.";
+            setIsListening(false);
             break;
           case "network":
             errorMessage = "Ошибка сети при распознавании речи.";
+            setIsListening(false);
             break;
           default:
             errorMessage = `Ошибка: ${event.error}`;
+            setIsListening(false);
         }
 
-        setError(errorMessage);
-        setIsListening(false);
-        if (onError) {
-          onError(errorMessage);
+        if (errorMessage !== "Произошла ошибка распознавания речи" || event.error !== "no-speech") {
+          setError(errorMessage);
+          if (onError) {
+            onError(errorMessage);
+          }
         }
       };
 
       recognition.onend = () => {
+        isListeningRef.current = false;
         setIsListening(false);
+        // Если continuous включен и мы все еще должны слушать, перезапускаем
+        if (continuous && isListeningRef.current === false) {
+          // Небольшая задержка перед перезапуском
+          setTimeout(() => {
+            if (recognitionRef.current && !isListeningRef.current) {
+              try {
+                isListeningRef.current = true;
+                recognitionRef.current.start();
+              } catch (e: any) {
+                isListeningRef.current = false;
+                // Игнорируем ошибки перезапуска (already started, aborted и т.д.)
+                const errorMsg = e?.message || String(e) || "";
+                if (!errorMsg.includes("already started") && 
+                    !errorMsg.includes("aborted") &&
+                    !errorMsg.includes("not started")) {
+                  console.log("Recognition auto-restart skipped:", errorMsg);
+                }
+              }
+            }
+          }, 100);
+        }
       };
     } else {
       setIsSupported(false);
@@ -152,7 +183,7 @@ export function useSpeechRecognition({
     }
 
     // Если уже слушаем, не запускаем повторно
-    if (isListening) {
+    if (isListeningRef.current) {
       return;
     }
 
@@ -168,10 +199,12 @@ export function useSpeechRecognition({
       
       // Задержка для полной очистки перед новым запуском
       setTimeout(() => {
-        if (recognitionRef.current) {
+        if (recognitionRef.current && !isListeningRef.current) {
           try {
+            isListeningRef.current = true;
             recognitionRef.current.start();
           } catch (err: any) {
+            isListeningRef.current = false;
             // Игнорируем ошибки "already started", "aborted", "not started"
             const errorMsg = err?.message || String(err) || "";
             if (!errorMsg.includes("already started") && 
@@ -185,22 +218,24 @@ export function useSpeechRecognition({
             }
           }
         }
-      }, 300);
+      }, 200);
     } catch (err) {
       console.error("Error starting recognition:", err);
+      isListeningRef.current = false;
     }
   };
 
   const stopListening = () => {
+    isListeningRef.current = false;
     if (recognitionRef.current) {
       try {
-        if (isListening) {
-          recognitionRef.current.stop();
-        } else {
-          recognitionRef.current.abort();
-        }
+        recognitionRef.current.stop();
       } catch (err) {
-        console.error("Error stopping recognition:", err);
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {
+          console.error("Error stopping recognition:", err);
+        }
       }
     }
   };
