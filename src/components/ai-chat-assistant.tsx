@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Mic, MicOff } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
 interface Message {
   id: string;
@@ -16,9 +17,10 @@ interface AIChatAssistantProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   hideButton?: boolean;
+  startWithVoice?: boolean;
 }
 
-export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, hideButton = false }: AIChatAssistantProps = {}) {
+export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, hideButton = false, startWithVoice = false }: AIChatAssistantProps = {}) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
@@ -41,6 +43,28 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Голосовое распознавание
+  const { isListening, isSupported, error: speechError, startListening, stopListening } = useSpeechRecognition({
+    onResult: (text) => {
+      setInputValue((prev) => prev + (prev ? " " : "") + text);
+    },
+    onError: (error) => {
+      console.error("Speech recognition error:", error);
+    },
+    language: "ru-RU",
+    continuous: false,
+    interimResults: false,
+  });
+
+  // Автозапуск голосового ввода если startWithVoice
+  useEffect(() => {
+    if (isOpen && startWithVoice && isSupported) {
+      setTimeout(() => {
+        startListening();
+      }, 500);
+    }
+  }, [isOpen, startWithVoice, isSupported, startListening]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,6 +83,11 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
 
+    // Останавливаем распознавание, если оно активно
+    if (isListening) {
+      stopListening();
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -67,6 +96,7 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const messageToSend = inputValue;
     setInputValue("");
     setIsLoading(true);
 
@@ -78,7 +108,7 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: inputValue,
+          message: messageToSend,
           conversationHistory: messages,
         }),
       });
@@ -111,6 +141,14 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
   };
 
@@ -229,26 +267,61 @@ export default function AIChatAssistant({ isOpen: externalIsOpen, onOpenChange, 
 
               {/* Поле ввода */}
               <div className="p-3 md:p-4 border-t border-white/10 bg-[#0A0A0A]/50">
+                {speechError && (
+                  <div className="mb-2 px-3 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-xs">
+                    {speechError}
+                  </div>
+                )}
                 <div className="flex gap-2">
+                  {isSupported && (
+                    <button
+                      onClick={() => {
+                        if (isListening) {
+                          stopListening();
+                        } else {
+                          startListening();
+                        }
+                      }}
+                      className={`flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-lg transition-all ${
+                        isListening
+                          ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                          : "bg-white/10 hover:bg-white/20 text-white"
+                      }`}
+                      aria-label={isListening ? "Остановить запись" : "Начать голосовой ввод"}
+                      title={isListening ? "Остановить запись" : "Голосовой ввод"}
+                    >
+                      {isListening ? (
+                        <MicOff className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      ) : (
+                        <Mic className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      )}
+                    </button>
+                  )}
                   <input
                     ref={inputRef}
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Напишите сообщение..."
-                    disabled={isLoading}
+                    placeholder={isListening ? "Говорите..." : "Напишите сообщение..."}
+                    disabled={isLoading || isListening}
                     className="flex-1 px-3 md:px-4 py-2 bg-white/5 border border-white/30 rounded-lg text-white text-xs md:text-sm placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-colors disabled:opacity-50"
                   />
                   <button
                     onClick={handleSend}
-                    disabled={isLoading || !inputValue.trim()}
+                    disabled={isLoading || !inputValue.trim() || isListening}
                     className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Отправить сообщение"
                   >
                     <Send className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   </button>
                 </div>
+                {isListening && (
+                  <div className="mt-2 flex items-center gap-2 text-purple-400 text-xs">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span>Идет запись... Говорите</span>
+                  </div>
+                )}
               </div>
             </motion.div>
           </>

@@ -402,6 +402,7 @@ export default function Page() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileAuth, setShowMobileAuth] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [startAIChatWithVoice, setStartAIChatWithVoice] = useState(false);
 
   return (
     <main className="relative h-screen overflow-hidden text-white">
@@ -445,8 +446,14 @@ export default function Page() {
       {showAIChat && (
         <AIChatAssistant
           isOpen={showAIChat}
-          onOpenChange={setShowAIChat}
+          onOpenChange={(open) => {
+            setShowAIChat(open);
+            if (!open) {
+              setStartAIChatWithVoice(false);
+            }
+          }}
           hideButton={true}
+          startWithVoice={startAIChatWithVoice}
         />
       )}
       <header className="fixed top-0 left-0 right-0 z-50 w-full px-2 sm:px-3 md:px-6 lg:px-12 xl:px-20 py-1 md:py-1">
@@ -662,7 +669,7 @@ export default function Page() {
       </div>
       
       {/* Блок кнопок над футером */}
-      <div className="fixed bottom-20 md:bottom-24 left-0 right-0 z-30 px-2 sm:px-4 md:px-6">
+      <div className="fixed bottom-28 sm:bottom-32 md:bottom-36 left-0 right-0 z-30 px-2 sm:px-4 md:px-6">
         <div className="mx-auto max-w-7xl">
           <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
             {/* Кнопка "Заказать звонок" (слева) */}
@@ -687,7 +694,10 @@ export default function Page() {
             
             {/* Кнопка "ИИ Ассистент" (справа) */}
             <button
-              onClick={() => setShowAIChat(true)}
+              onClick={() => {
+                setStartAIChatWithVoice(false);
+                setShowAIChat(true);
+              }}
               className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white text-xs sm:text-sm font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
               title="ИИ Ассистент"
             >

@@ -3,9 +3,11 @@
 import { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Mail, Phone, Twitter, Instagram, MessageCircle } from "lucide-react";
+import { Mail, Phone, Mic } from "lucide-react";
 import VKIcon from "@/components/icons/vk-icon";
 import TelegramIcon from "@/components/icons/telegram-icon";
+import YandexIcon from "@/components/icons/yandex-icon";
+import MaxIcon from "@/components/icons/max-icon";
 
 const APP_EMAIL = "info@rahima-consulting.ru";
 const APP_PHONE = "+7 (978) 998-72-22";
@@ -32,9 +34,9 @@ const socialLinks = [
     label: "ВКонтакте",
   },
   {
-    icon: Twitter,
-    href: "https://twitter.com",
-    label: "Twitter",
+    icon: YandexIcon,
+    href: "https://yandex.ru",
+    label: "Яндекс",
   },
   {
     icon: TelegramIcon,
@@ -42,17 +44,23 @@ const socialLinks = [
     label: "Telegram",
   },
   {
-    icon: Instagram,
-    href: "https://www.instagram.com/reel/DRuRZO6iPMu/?utm_source=ig_web_copy_link",
-    label: "Instagram",
+    icon: MaxIcon,
+    href: "https://max.com",
+    label: "Макс",
   },
 ];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [startWithVoice, setStartWithVoice] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  
+  const handleVoiceAssistantClick = () => {
+    setStartWithVoice(true);
+    setIsChatOpen(true);
+  };
 
   return (
     <>
@@ -83,7 +91,7 @@ export default function Footer() {
                 <div className="flex items-center gap-2 sm:gap-3">
                   {socialLinks.map((link) => {
                     const Icon = link.icon;
-                    const isTwitter = link.label === "Twitter";
+                    const isYandex = link.label === "Яндекс";
                     
                     return (
                       <div key={link.label} className="contents">
@@ -96,15 +104,15 @@ export default function Footer() {
                         >
                           <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </a>
-                        {/* Кнопка чата между Twitter и LinkedIn - больше остальных */}
-                        {isTwitter && (
+                        {/* Кнопка голосового помощника между Яндекс и Telegram - больше остальных */}
+                        {isYandex && (
                           <button
                             type="button"
-                            onClick={() => setIsChatOpen(true)}
+                            onClick={handleVoiceAssistantClick}
                             className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:scale-110 transition-transform shadow-lg shadow-purple-500/50"
-                            aria-label="Открыть чат помощника"
+                            aria-label="Голосовой помощник"
                           >
-                            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
                         )}
                       </div>
@@ -138,7 +146,17 @@ export default function Footer() {
       
       {/* Чат помощник */}
       <Suspense fallback={null}>
-        <AIChatAssistant isOpen={isChatOpen} onOpenChange={setIsChatOpen} hideButton={true} />
+        <AIChatAssistant 
+          isOpen={isChatOpen} 
+          onOpenChange={(open) => {
+            setIsChatOpen(open);
+            if (!open) {
+              setStartWithVoice(false);
+            }
+          }} 
+          hideButton={true}
+          startWithVoice={startWithVoice}
+        />
       </Suspense>
 
       {/* Модальное окно политики конфиденциальности */}

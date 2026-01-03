@@ -62,7 +62,7 @@ export default function DashboardNav() {
     <>
       {/* Мобильная кнопка меню */}
       {isMobile && (
-        <div className="sticky top-0 z-50 bg-[#0A0A0A]/95 backdrop-blur-sm border-b border-white/10 p-4">
+        <div className="sticky top-0 z-50 bg-[#0A0A0A] backdrop-blur-sm border-b border-white/10 p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Меню</h2>
             <button
@@ -85,7 +85,7 @@ export default function DashboardNav() {
         className={`
           ${isMobile ? "fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300" : "sticky top-0 h-screen"}
           ${isMobile && !isOpen ? "-translate-x-full" : ""}
-          bg-[#0A0A0A]/95 backdrop-blur-sm border-r border-white/10 p-4 md:p-6
+          bg-[#0A0A0A] backdrop-blur-sm border-r border-white/10 p-4 md:p-6
         `}
       >
         {/* Логотип/Заголовок */}
