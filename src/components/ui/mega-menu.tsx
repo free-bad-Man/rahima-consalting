@@ -195,7 +195,7 @@ const MegaMenu = React.forwardRef<HTMLUListElement, MegaMenuProps>(
           const showChevron = hasSubmenu && !["Услуги", "Решения", "ИИ - Ассистенты"].includes(navItem.label);
           
           const triggerContent = (
-            <span className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-2 md:py-2 md:px-3 text-[10px] md:text-xs font-medium text-white transition-all duration-200 hover:bg-gray-900/40 group whitespace-nowrap rounded-md border border-white/20 bg-gray-900/30 shadow-sm hover:shadow-md">
+            <span className="relative flex cursor-pointer items-center justify-center gap-1 py-1.5 px-2 md:py-2 md:px-3 text-[10px] md:text-xs font-medium text-white transition-all duration-200 group whitespace-nowrap rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40">
               <span>{navItem.label}</span>
               {showChevron && (
                 <ChevronDown

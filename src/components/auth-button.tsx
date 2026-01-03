@@ -67,7 +67,7 @@ export default function AuthButton({ onSignInClick, onRegisterClick }: AuthButto
   }
 
   return (
-    <>
+    <div className="flex flex-col items-end gap-2">
       <button
         onClick={() => signIn("google")}
         className="flex items-center justify-center gap-1.5 sm:gap-2 min-h-[44px] sm:min-h-0 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-2 bg-gray-900/30 text-white text-[11px] sm:text-xs font-medium rounded-md border border-white/20 hover:bg-gray-900/40 active:bg-gray-900/50 shadow-sm transition-all duration-200 hover:shadow-md whitespace-nowrap w-full touch-manipulation"
@@ -107,7 +107,7 @@ export default function AuthButton({ onSignInClick, onRegisterClick }: AuthButto
       >
         Вход
       </button>
-    </>
+    </div>
   );
 }
 

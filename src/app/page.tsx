@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { Menu, User as UserIcon, Calculator } from "lucide-react";
+import { Menu, User as UserIcon, Calculator, MessageCircle, Phone } from "lucide-react";
 import { Drawer } from "vaul";
 import MegaMenu, { type MegaMenuItem } from "@/components/ui/mega-menu";
 import AuthButton from "@/components/auth-button";
@@ -401,6 +401,7 @@ export default function Page() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileAuth, setShowMobileAuth] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
 
   return (
     <main className="relative h-screen overflow-hidden text-white">
@@ -439,6 +440,13 @@ export default function Page() {
             setShowAuthModal(true);
             setAuthModalType("register");
           }}
+        />
+      )}
+      {showAIChat && (
+        <AIChatAssistant
+          isOpen={showAIChat}
+          onOpenChange={setShowAIChat}
+          hideButton={true}
         />
       )}
       <header className="fixed top-0 left-0 right-0 z-50 w-full px-2 sm:px-3 md:px-6 lg:px-12 xl:px-20 py-1 md:py-1">
@@ -538,10 +546,10 @@ export default function Page() {
                         setShowCalculator(true);
                         setIsMobileMenuOpen(false);
                       }}
-                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium"
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
                     >
                       <Calculator className="w-5 h-5" />
-                      Рассчитать стоимость
+                      Расчитать стоимость
                     </button>
                     <div className="flex items-center justify-center gap-2">
                       <NotificationsDropdown />
@@ -603,26 +611,19 @@ export default function Page() {
           </div>
           <div className="flex items-start justify-end flex-1 pt-2">
             <div className="flex items-center gap-3">
-              {/* Кнопка калькулятора */}
-              <button
-                onClick={() => setShowCalculator(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white text-xs font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
-                title="Рассчитать стоимость услуг"
-              >
-                <Calculator className="w-4 h-4" />
-                <span className="hidden lg:inline">Калькулятор</span>
-              </button>
               <NotificationsDropdown />
-              <AuthButton
-                onSignInClick={() => {
-                  setShowAuthModal(true);
-                  setAuthModalType("signin");
-                }}
-                onRegisterClick={() => {
-                  setShowAuthModal(true);
-                  setAuthModalType("register");
-                }}
-              />
+              <div className="flex flex-col items-end gap-2">
+                <AuthButton
+                  onSignInClick={() => {
+                    setShowAuthModal(true);
+                    setAuthModalType("signin");
+                  }}
+                  onRegisterClick={() => {
+                    setShowAuthModal(true);
+                    setAuthModalType("register");
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -658,6 +659,43 @@ export default function Page() {
             </div>
           </section>
         ))}
+      </div>
+      
+      {/* Блок кнопок над футером */}
+      <div className="fixed bottom-20 md:bottom-24 left-0 right-0 z-30 px-2 sm:px-4 md:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
+            {/* Кнопка "Заказать звонок" (слева) */}
+            <button
+              onClick={() => setShowContactsModal(true)}
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white text-xs sm:text-sm font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
+              title="Заказать звонок"
+            >
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Заказать звонок</span>
+            </button>
+            
+            {/* Кнопка "Расчитать стоимость" (центр) */}
+            <button
+              onClick={() => setShowCalculator(true)}
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white text-xs sm:text-sm font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
+              title="Расчитать стоимость услуг"
+            >
+              <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Расчитать стоимость</span>
+            </button>
+            
+            {/* Кнопка "ИИ Ассистент" (справа) */}
+            <button
+              onClick={() => setShowAIChat(true)}
+              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-600/80 hover:from-purple-600 hover:to-blue-600 text-white text-xs sm:text-sm font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
+              title="ИИ Ассистент"
+            >
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">ИИ Ассистент</span>
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );
